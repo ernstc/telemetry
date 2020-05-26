@@ -64,10 +64,10 @@ Traces can then be added of any level to instrument application code.<br>
 ![alt text](/images/00a._TraceManager_Traces.jpg "Adding traces to your application")
 width="800" height="700" 
 -->
-<img src="/diginsight/telemetry/blob/master/images/00a._TraceManager_Traces.jpg?raw=true" alt="Telemetry with a trace listener rendering"
+<img src="/diginsight/telemetry/blob/master/images/00a._TraceManager_Traces.jpg?raw=true" 
 	 alt="Starting telemetry in your application"
 	 title="Starting telemetry in your application" 
-	 style="border: 1px solid black;" />
+	 style="user-select: auto;" />
 
 ## Instrumenting a code section
 Any code section can be instrumented by means of `GetCodeSection()` 
