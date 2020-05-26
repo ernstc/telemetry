@@ -140,7 +140,7 @@ __Common.Diagnostics__ component uses .Net Framework System.Diagnostics componen
 This allows integrating Common.Diagnostics structured telemetry with unstructured telemetry from other components that do not use Common.Diagnostics package.<br>
 Also, this allows standard System.Diagnostics listeners receive telemetry from Common.Diagnostics component.
 
-With framework 4.7+ applications, Listeners can be configured as standard System.Diagnostics listeners on the application config file.<br>
+With framework 4.6.2+ applications, Listeners can be configured as standard System.Diagnostics listeners on the application config file.<br>
 A similar configuration structure is supported on the appsettings.json file that is supported on both .Net Core and .Net Full Applications.
 
 # thumbnail bordered
