@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<TargetFramework>net462</TargetFramework>
+		<RuntimeIdentifiers>win7-x64</RuntimeIdentifiers>
+		<UseWPF>true</UseWPF>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net462'">
+		<RuntimeIdentifier>win7-x64</RuntimeIdentifier>
+	</PropertyGroup>
+	<ItemGroup>
+		<None Remove="appsettings.json" />
+		<None Remove="log4net.config" />
+	</ItemGroup>
+	<ItemGroup>
+		<Content Include="appsettings.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="log4net.config">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\Common.Diagnostics.AppInsights\Common.Diagnostics.AppInsights.csproj" />
+		<ProjectReference Include="..\..\..\Common.Diagnostics.Log4net\Common.Diagnostics.Log4net.csproj" />
+		<ProjectReference Include="..\..\..\Common.Diagnostics.Win\Common.Diagnostics.Win.csproj" />
+		<ProjectReference Include="..\..\..\Common.Diagnostics\Common.Diagnostics.csproj" />
+	</ItemGroup>
+</Project>
