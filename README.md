@@ -78,9 +78,9 @@ The **method name** is obtained by compiler generated parameters, **parameter na
 If any, a code section **return value** can be provided in the CodeSection `Result` property.<br>
 Additional information about the current class is provided an the explicit or a generic **Type argument**.<br>
 
-# thumbnail bordered
 ![alt text](/images/02._CodeSection_with_static_method.jpg "Code section instrumented by means of a GetCodeSection()")
 <!-- 
+# thumbnail bordered
 width="800" height="450" 
 <img src="/diginsight/telemetry/blob/master/images/02._CodeSection_with_static_method.jpg?raw=true" 
 	alt="Code section instrumented by means of a GetCodeSection()"
@@ -126,9 +126,9 @@ The image below shows Information level trace obtained from file based listeners
 
 The same listeners can be configured to show the entire execution flow, with debug level information, parameters (and return values):
 
-# thumbnail bordered
 ![alt text](/images/04._Debug_trace_with_nesting.jpg "Debug trace with nesting")
 <!-- 
+# thumbnail bordered
 <img src="/diginsight/telemetry/blob/master/images/04._Debug_trace_with_nesting.jpg?raw=true" 
 	alt="Debug trace with nesting"
 	title="Debug trace with nesting" 
@@ -143,9 +143,9 @@ Also, this allows standard System.Diagnostics listeners receive telemetry from C
 With framework 4.6.2+ applications, Listeners can be configured as standard System.Diagnostics listeners on the application config file.<br>
 A similar configuration structure is supported on the appsettings.json file that is supported on both .Net Core and .Net Full Applications.
 
-# thumbnail bordered
 ![alt text](/images/05._Appsettings_configuration_file.jpg "Debug trace with nesting")
 <!-- 
+# thumbnail bordered
 <img src="/diginsight/telemetry/blob/master/images/05._Appsettings_configuration_file.jpg?raw=true" 
 	alt="Debug trace with nesting"
 	title="Debug trace with nesting" 
