@@ -1,7 +1,3 @@
-<style>
-#foo {color: red}
-</style>
-
 # INTRODUCTION 
 __Common.Diagnostics__ component provides __telemetry__ with application execution flow to configurable listeners.<br>
 <br>
@@ -14,7 +10,7 @@ Listeners receive telemetry data as structured TraceEntries.<br>
 This allows to every single listener *to access, process and display only the information that is required for its specific purpose*.<br>
 Also, this allows saving processing cost of data that is not rendered (eg. debug messages processing when debug telemetry is disabled)<br>
 <br>
-Common.Diagnostics component is supported on .Net Framework 4.7+ and .Net Core 3.0+.
+Common.Diagnostics component is supported on .Net Framework 4.6.2+ and .Net Core 3.0+.
 
 # GETTING STARTED
 <!-- span style="background-color: #FFFF99">TraceManager.Debug</span -->
@@ -68,7 +64,7 @@ Traces can then be added of any level to instrument application code.<br>
 ![alt text](/images/00a._TraceManager_Traces.jpg "Adding traces to your application")
 width="800" height="700" 
 -->
-<img src="/diginsight/d236cfda-9f52-42db-b262-986de2b2b226/_apis/git/repositories/1d396e35-7b6b-4343-bc1a-79bc033305e8/Items?path=%2Fimages%2F00a._TraceManager_Traces.jpg&amp;versionDescriptor%5BversionOptions%5D=0&amp;versionDescriptor%5BversionType%5D=0&amp;versionDescriptor%5Bversion%5D=master&amp;download=false&amp;resolveLfs=true&amp;%24format=octetStream&amp;api-version=5.0-preview.1" alt="Telemetry with a trace listener rendering"
+<img src="/diginsight/telemetry/blob/master/images/00a._TraceManager_Traces.jpg?raw=true" alt="Telemetry with a trace listener rendering"
 	 alt="Starting telemetry in your application"
 	 title="Starting telemetry in your application" 
 	 style="border: 1px solid black;" />
@@ -86,7 +82,7 @@ Additional information about the current class is provided an the explicit or a 
 ![alt text](/images/02._CodeSection_with_static_method.jpg "Code section instrumented by means of a GetCodeSection()")
 width="800" height="450" 
 -->
-<img src="/diginsight/d236cfda-9f52-42db-b262-986de2b2b226/_apis/git/repositories/1d396e35-7b6b-4343-bc1a-79bc033305e8/Items?path=%2Fimages%2F02._CodeSection_with_static_method.jpg&amp;versionDescriptor%5BversionOptions%5D=0&amp;versionDescriptor%5BversionType%5D=0&amp;versionDescriptor%5Bversion%5D=master&amp;download=false&amp;resolveLfs=true&amp;%24format=octetStream&amp;api-version=5.0-preview.1" 
+<img src="/diginsight/telemetry/blob/master/images/02._CodeSection_with_static_method.jpg?raw=true" 
 	alt="Code section instrumented by means of a GetCodeSection()"
 	title="Code section instrumented by means of a GetCodeSection()" 
 	style="border: 1px solid black;" />
@@ -110,7 +106,7 @@ In case of instance methods, the type argument can be omitted and the current cl
 <!-- # thumbnail bordered
 ![alt text](/images/02b._CodeSection_with_instance_method.jpg "Instrumenting an instance code section")
 -->
-<img src="/diginsight/d236cfda-9f52-42db-b262-986de2b2b226/_apis/git/repositories/1d396e35-7b6b-4343-bc1a-79bc033305e8/Items?path=%2Fimages%2F02b._CodeSection_with_instance_method.jpg&amp;versionDescriptor%5BversionOptions%5D=0&amp;versionDescriptor%5BversionType%5D=0&amp;versionDescriptor%5Bversion%5D=master&amp;download=false&amp;resolveLfs=true&amp;%24format=octetStream&amp;api-version=5.0-preview.1" 
+<img src="/diginsight/telemetry/blob/master/images/02b._CodeSection_with_instance_method.jpg?raw=true" 
 	alt="Instrumenting an instance code section"
 	title="Instrumenting an instance code section" 
 	style="border: 1px solid black;" />
@@ -122,7 +118,7 @@ The image below shows Information level trace obtained from file based listeners
 <!-- 
 ![alt text](/images/03._Information_trace_unnested.jpg "Telemetry with a trace listener rendering") 
 -->
-<img src="/diginsight/d236cfda-9f52-42db-b262-986de2b2b226/_apis/git/repositories/1d396e35-7b6b-4343-bc1a-79bc033305e8/Items?path=%2Fimages%2F03._Information_trace_unnested.jpg&amp;versionDescriptor%5BversionOptions%5D=0&amp;versionDescriptor%5BversionType%5D=0&amp;versionDescriptor%5Bversion%5D=master&amp;download=false&amp;resolveLfs=true&amp;%24format=octetStream&amp;api-version=5.0-preview.1" 
+<img src="/diginsight/telemetry/blob/master/images/03._Information_trace_unnested.jpg?raw=true" 
 	alt="Debug trace with nesting"
 	title="Debug trace with nesting" 
 	style="border: 1px solid black;" />
@@ -132,7 +128,7 @@ The same listeners can be configured to show the entire execution flow, with deb
 # thumbnail bordered
 ![alt text](/images/04._Debug_trace_with_nesting.jpg "Debug trace with nesting")
 -->
-<img src="/diginsight/d236cfda-9f52-42db-b262-986de2b2b226/_apis/git/repositories/1d396e35-7b6b-4343-bc1a-79bc033305e8/Items?path=%2Fimages%2F04._Debug_trace_with_nesting.jpg&amp;versionDescriptor%5BversionOptions%5D=0&amp;versionDescriptor%5BversionType%5D=0&amp;versionDescriptor%5Bversion%5D=master&amp;download=false&amp;resolveLfs=true&amp;%24format=octetStream&amp;api-version=5.0-preview.1" 
+<img src="/diginsight/telemetry/blob/master/images/04._Debug_trace_with_nesting.jpg?raw=true" 
 	alt="Debug trace with nesting"
 	title="Debug trace with nesting" 
 	style="border: 1px solid black;" />
@@ -149,7 +145,7 @@ A similar configuration structure is supported on the appsettings.json file that
 # thumbnail bordered
 ![alt text](/images/05._Appsettings_configuration_file.jpg "Debug trace with nesting")
 -->
-<img src="/diginsight/d236cfda-9f52-42db-b262-986de2b2b226/_apis/git/repositories/1d396e35-7b6b-4343-bc1a-79bc033305e8/Items?path=%2Fimages%2F05._Appsettings_configuration_file.jpg&amp;versionDescriptor%5BversionOptions%5D=0&amp;versionDescriptor%5BversionType%5D=0&amp;versionDescriptor%5Bversion%5D=master&amp;download=false&amp;resolveLfs=true&amp;%24format=octetStream&amp;api-version=5.0-preview.1" 
+<img src="/diginsight/telemetry/blob/master/images/05._Appsettings_configuration_file.jpg?raw=true" 
 	alt="Debug trace with nesting"
 	title="Debug trace with nesting" 
 	style="border: 1px solid black;" />
@@ -173,7 +169,7 @@ You can provide log strings for your types by means of `ISupportLogString` inter
 <!-- 
 ![alt text](/images/06._Class_with_ISupportLogString.jpg "Debug trace with nesting")
 -->
-<img src="/diginsight/d236cfda-9f52-42db-b262-986de2b2b226/_apis/git/repositories/1d396e35-7b6b-4343-bc1a-79bc033305e8/Items?path=%2Fimages%2F06._Class_with_ISupportLogString.jpg&amp;versionDescriptor%5BversionOptions%5D=0&amp;versionDescriptor%5BversionType%5D=0&amp;versionDescriptor%5Bversion%5D=master&amp;download=false&amp;resolveLfs=true&amp;%24format=octetStream&amp;api-version=5.0-preview.1" 
+<img src="/diginsight/telemetry/blob/master/images/06._Class_with_ISupportLogString.jpg?raw=true" 
 	alt="Debug trace with nesting"
 	title="Debug trace with nesting" 
 	style="border: 1px solid black;" />
@@ -183,7 +179,7 @@ For objects from external libraries You can provide log strings registering a pr
 <!-- 
 ![alt text](/images/07._Application_instance_with_IProvideLogString.jpg "Debug trace with nesting")
 -->
-<img src="/diginsight/d236cfda-9f52-42db-b262-986de2b2b226/_apis/git/repositories/1d396e35-7b6b-4343-bc1a-79bc033305e8/Items?path=%2Fimages%2F07._Application_instance_with_IProvideLogString.jpg&amp;versionDescriptor%5BversionOptions%5D=0&amp;versionDescriptor%5BversionType%5D=0&amp;versionDescriptor%5Bversion%5D=master&amp;download=false&amp;resolveLfs=true&amp;%24format=octetStream&amp;api-version=5.0-preview.1" 
+<img src="/diginsight/telemetry/blob/master/images/07._Application_instance_with_IProvideLogString.jpg?raw=true" 
 	alt="Debug trace with nesting"
 	title="Debug trace with nesting" 
 	style="border: 1px solid black;" />
@@ -193,7 +189,7 @@ The image below shows the EasySample where logstrings are provided for Window an
 <!-- 
 ![alt text](/images/08._Application_trace_with_custom_logstrings_from_IProvideLogString.jpg "Debug trace with nesting")
 -->
-<img src="/diginsight/d236cfda-9f52-42db-b262-986de2b2b226/_apis/git/repositories/1d396e35-7b6b-4343-bc1a-79bc033305e8/Items?path=%2Fimages%2F08._Application_trace_with_custom_logstrings_from_IProvideLogString.jpg&amp;versionDescriptor%5BversionOptions%5D=0&amp;versionDescriptor%5BversionType%5D=0&amp;versionDescriptor%5Bversion%5D=master&amp;download=false&amp;resolveLfs=true&amp;%24format=octetStream&amp;api-version=5.0-preview.1" 
+<img src="/diginsight/telemetry/blob/master/images/08._Application_trace_with_custom_logstrings_from_IProvideLogString.jpg?raw=true" 
 	alt="Debug trace with nesting"
 	title="Debug trace with nesting" 
 	style="border: 1px solid black;" />
