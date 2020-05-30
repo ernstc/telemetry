@@ -44,6 +44,8 @@ namespace Common
         internal static Assembly EntryAssembly { get; set; }
         public static string ProcessName = null;
         public static int ProcessId = -1;
+        public static Reference<bool> _lockListenersNotifications = new Reference<bool>();
+        public static ConcurrentQueue<TraceEntry> _pendingEntries = new ConcurrentQueue<TraceEntry>();
 
         // Asynchronous flow ambient data.
         public static AsyncLocal<CodeSection> CurrentCodeSection { get; set; } = new AsyncLocal<CodeSection>();
@@ -63,74 +65,96 @@ namespace Common
         #endregion
 
         #region Init
+
+        private static void _lockListenersNotifications_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            var pendingEntries = new ConcurrentQueue<TraceEntry>();
+            var pendingEntriesTemp = _pendingEntries;
+            _pendingEntries = pendingEntries;
+
+            pendingEntriesTemp.ForEach(entry =>
+            {
+                var traceSource = entry.TraceSource;
+                if (traceSource?.Listeners != null) foreach (TraceListener listener in traceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } }
+                if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            });
+        }
         public static void Init(SourceLevels filterLevel, IConfiguration configuration)
         {
-            using (var sec = TraceManager.GetCodeSection(T))
+            // start a telemetry lock 
+            // during telemetry locks telemetry is stopped and accumulated for later streaming 
+            _lockListenersNotifications.PropertyChanged += _lockListenersNotifications_PropertyChanged;
+            using (new SwitchOnDispose(_lockListenersNotifications, true))
             {
-                try
+                using (var sec = TraceManager.GetCodeSection(T))
                 {
-                    if (TraceManager.Configuration != null) { return; }
-
-                    if (configuration == null)
+                    try
                     {
-                        //var env = hostingContext.HostingEnvironment;
-                        var jsonFile = "";
-                        var jsonFileName = "appsettings";
-                        var currentDirectory = Directory.GetCurrentDirectory();
-                        var appdomainFolder = System.AppDomain.CurrentDomain.BaseDirectory.Trim('\\');
+                        if (TraceManager.Configuration != null) { return; }
 
-                        jsonFile = currentDirectory == appdomainFolder ? $"{jsonFileName}.json" : Path.Combine(appdomainFolder, $"{jsonFileName}.json");
-                        var builder = new ConfigurationBuilder()
-                                      .AddJsonFile(jsonFile, true, true)
-                                      //.AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true)
-                                      .AddInMemoryCollection();
-                        builder.AddEnvironmentVariables();
-                        configuration = builder.Build();
-                    }
+                        if (configuration == null)
+                        {
+                            //var env = hostingContext.HostingEnvironment;
+                            var jsonFile = "";
+                            var jsonFileName = "appsettings";
+                            var currentDirectory = Directory.GetCurrentDirectory();
+                            var appdomainFolder = System.AppDomain.CurrentDomain.BaseDirectory.Trim('\\');
 
-                    TraceManager.Configuration = configuration;
-                    ConfigurationHelper.Init(configuration);
+                            jsonFile = currentDirectory == appdomainFolder ? $"{jsonFileName}.json" : Path.Combine(appdomainFolder, $"{jsonFileName}.json");
+                            var builder = new ConfigurationBuilder()
+                                          .AddJsonFile(jsonFile, true, true)
+                                          //.AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true)
+                                          .AddInMemoryCollection();
+                            builder.AddEnvironmentVariables();
+                            configuration = builder.Build();
+                        }
 
-                    var defaultConfig = new ListenerConfig()
-                    {
-                        name = "Default",
-                        action = "add",
-                        type = "Common.TraceListenerFormatItems, Common.Diagnostics",
-                        innerListener = new ListenerConfig()
+                        TraceManager.Configuration = configuration;
+                        ConfigurationHelper.Init(configuration);
+
+                        var defaultConfig = new ListenerConfig()
                         {
                             name = "Default",
-                            action = "removeOrAdd",
-                            type = "System.Diagnostics.DefaultTraceListener, System.Diagnostics.TraceSource"
-                        }
-                    };
-                    ApplyListenerConfig(defaultConfig, Trace.Listeners);
+                            action = "add",
+                            type = "Common.TraceListenerFormatItems, Common.Diagnostics",
+                            innerListener = new ListenerConfig()
+                            {
+                                name = "Default",
+                                action = "removeOrAdd",
+                                type = "System.Diagnostics.DefaultTraceListener, System.Diagnostics.TraceSource"
+                            }
+                        };
+                        ApplyListenerConfig(defaultConfig, Trace.Listeners);
 
-                    var systemDiagnosticsConfig = new SystemDiagnosticsConfig();
-                    configuration.GetSection("system.diagnostics").Bind(systemDiagnosticsConfig);
-                    Config = systemDiagnosticsConfig;
+                        var systemDiagnosticsConfig = new SystemDiagnosticsConfig();
+                        configuration.GetSection("system.diagnostics").Bind(systemDiagnosticsConfig);
+                        Config = systemDiagnosticsConfig;
 
-                    var sourceConfig = systemDiagnosticsConfig?.sources?.FirstOrDefault(s => s.name == _traceSourceName);
-                    var switchName = sourceConfig?.switchName;
-                    var switchConfig = systemDiagnosticsConfig?.switches?.FirstOrDefault(sw => sw.name == switchName);
+                        var sourceConfig = systemDiagnosticsConfig?.sources?.FirstOrDefault(s => s.name == _traceSourceName);
+                        var switchName = sourceConfig?.switchName;
+                        var switchConfig = systemDiagnosticsConfig?.switches?.FirstOrDefault(sw => sw.name == switchName);
 
-                    var sourceLevel = switchConfig != null ? switchConfig.value : SourceLevels.All;
-                    TraceSource = new TraceSource(_traceSourceName, sourceLevel);
-                    TraceSource.Listeners.Clear();
+                        var sourceLevel = switchConfig != null ? switchConfig.value : SourceLevels.All;
+                        TraceSource = new TraceSource(_traceSourceName, sourceLevel);
+                        TraceSource.Listeners.Clear();
 
-                    sourceConfig?.listeners?.ForEach(lc =>
+                        sourceConfig?.listeners?.ForEach(lc =>
+                        {
+                            ApplyListenerConfig(lc, TraceSource.Listeners);
+                        });
+                        Config?.sharedListeners?.ForEach(lc =>
+                        {
+                            ApplyListenerConfig(lc, Trace.Listeners);
+                        });
+                    }
+                    catch (Exception ex)
                     {
-                        ApplyListenerConfig(lc, TraceSource.Listeners);
-                    });
-                    Config?.sharedListeners?.ForEach(lc =>
-                    {
-                        ApplyListenerConfig(lc, Trace.Listeners);
-                    });
-                }
-                catch (Exception ex)
-                {
-                    sec.Exception(ex);
+                        sec.Exception(ex);
+                    }
                 }
             }
+            // Release the telemetry lock 
+            // now telemetry items are streamed to the listeners 
         }
         #endregion
 
@@ -454,7 +478,7 @@ namespace Common
             }
 
             return null;
-        } 
+        }
         #endregion
     }
 
@@ -622,8 +646,12 @@ namespace Common
             if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Start) || this.DisableStartEndTraces == true) { return; }
 
             var entry = new TraceEntry() { TraceEventType = TraceEventType.Start, TraceSource = this.TraceSource, Message = null, Properties = properties, Source = source, Category = category, SourceLevel = sourceLevel, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
-            if (traceSource?.Listeners != null) foreach (TraceListener listener in traceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } }
-            if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            if (!TraceManager._lockListenersNotifications.Value)
+            {
+                if (traceSource?.Listeners != null) foreach (TraceListener listener in traceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } }
+                if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            }
+            else { TraceManager._pendingEntries.Enqueue(entry); }
         }
         #endregion
 
@@ -633,9 +661,14 @@ namespace Common
             if (TraceSource?.Listeners?.Count == 0 && Trace.Listeners?.Count == 0) { return; }
 
             var message = obj.GetLogString();
+
             var entry = new TraceEntry() { Message = message, TraceEventType = TraceEventType.Verbose, SourceLevel = SourceLevels.Verbose, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
-            if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
-            if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            if (!TraceManager._lockListenersNotifications.Value)
+            {
+                if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            }
+            else { TraceManager._pendingEntries.Enqueue(entry); }
         }
         public void Debug(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
@@ -643,8 +676,12 @@ namespace Common
             if (TraceSource?.Listeners?.Count == 0 && Trace.Listeners?.Count == 0) { return; }
 
             var entry = new TraceEntry() { Message = message.Value, TraceEventType = TraceEventType.Verbose, SourceLevel = SourceLevels.Verbose, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
-            if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
-            if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            if (!TraceManager._lockListenersNotifications.Value)
+            {
+                if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            }
+            else { TraceManager._pendingEntries.Enqueue(entry); }
         }
         public void Debug(FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
@@ -654,8 +691,12 @@ namespace Common
             try
             {
                 var entry = new TraceEntry() { Message = string.Format(message.Format, message.GetArguments()), TraceEventType = TraceEventType.Verbose, SourceLevel = SourceLevels.Verbose, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
-                if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
-                if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                if (!TraceManager._lockListenersNotifications.Value)
+                {
+                    if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                    if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                }
+                else { TraceManager._pendingEntries.Enqueue(entry); }
             }
             catch (Exception) { }
         }
@@ -666,8 +707,12 @@ namespace Common
             if (TraceSource?.Listeners?.Count == 0 && Trace.Listeners?.Count == 0) { return; }
 
             var entry = new TraceEntry() { Message = message.Value, TraceEventType = TraceEventType.Information, SourceLevel = SourceLevels.Information, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
-            if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
-            if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            if (!TraceManager._lockListenersNotifications.Value)
+            {
+                if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            }
+            else { TraceManager._pendingEntries.Enqueue(entry); }
         }
         public void Information(FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
@@ -675,8 +720,12 @@ namespace Common
             if (TraceSource?.Listeners?.Count == 0 && Trace.Listeners?.Count == 0) { return; }
 
             var entry = new TraceEntry() { Message = string.Format(message.Format, message.GetArguments()), TraceEventType = TraceEventType.Information, SourceLevel = SourceLevels.Information, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
-            if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
-            if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            if (!TraceManager._lockListenersNotifications.Value)
+            {
+                if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            }
+            else { TraceManager._pendingEntries.Enqueue(entry); }
         }
 
         public void Warning(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
@@ -685,8 +734,13 @@ namespace Common
             if (TraceSource?.Listeners?.Count == 0 && Trace.Listeners?.Count == 0) { return; }
 
             var entry = new TraceEntry() { Message = message.Value, TraceEventType = TraceEventType.Warning, SourceLevel = SourceLevels.Warning, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
-            if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
-            if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            if (!TraceManager._lockListenersNotifications.Value)
+            {
+                if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            }
+            else { TraceManager._pendingEntries.Enqueue(entry); }
+
         }
         public void Warning(FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
@@ -694,8 +748,13 @@ namespace Common
             if (TraceSource?.Listeners?.Count == 0 && Trace.Listeners?.Count == 0) { return; }
 
             var entry = new TraceEntry() { Message = string.Format(message.Format, message.GetArguments()), TraceEventType = TraceEventType.Warning, SourceLevel = SourceLevels.Warning, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
-            if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
-            if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            if (!TraceManager._lockListenersNotifications.Value)
+            {
+                if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            }
+            else { TraceManager._pendingEntries.Enqueue(entry); }
+
         }
 
         public void Error(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
@@ -704,8 +763,13 @@ namespace Common
             if (TraceSource?.Listeners?.Count == 0 && Trace.Listeners?.Count == 0) { return; }
 
             var entry = new TraceEntry() { Message = message.Value, TraceEventType = TraceEventType.Error, SourceLevel = SourceLevels.Error, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
-            if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
-            if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            if (!TraceManager._lockListenersNotifications.Value)
+            {
+                if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            }
+            else { TraceManager._pendingEntries.Enqueue(entry); }
+
         }
         public void Error(FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
@@ -713,8 +777,13 @@ namespace Common
             if (TraceSource?.Listeners?.Count == 0 && Trace.Listeners?.Count == 0) { return; }
 
             var entry = new TraceEntry() { Message = string.Format(message.Format, message.GetArguments()), TraceEventType = TraceEventType.Error, SourceLevel = SourceLevels.Error, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
-            if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
-            if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            if (!TraceManager._lockListenersNotifications.Value)
+            {
+                if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            }
+            else { TraceManager._pendingEntries.Enqueue(entry); }
+
         }
 
         public void Exception(Exception exception, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = true)
@@ -739,8 +808,13 @@ namespace Common
                 DisableCRLFReplace = disableCRLFReplace,
                 ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds
             };
-            if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
-            if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            if (!TraceManager._lockListenersNotifications.Value)
+            {
+                if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            }
+            else { TraceManager._pendingEntries.Enqueue(entry); }
+
         }
 
         bool _disposed = false;
@@ -755,8 +829,13 @@ namespace Common
                 if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Stop) || this.DisableStartEndTraces == true) { return; }
 
                 var entry = new TraceEntry() { TraceEventType = TraceEventType.Stop, TraceSource = this.TraceSource, Message = null, Properties = this.Properties, Source = this.Source, Category = this.Category, SourceLevel = this.SourceLevel, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
-                if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
-                if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                if (!TraceManager._lockListenersNotifications.Value)
+                {
+                    if (TraceSource?.Listeners != null) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                    if (Trace.Listeners != null) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                }
+                else { TraceManager._pendingEntries.Enqueue(entry); }
+
             }
             finally { TraceManager.CurrentCodeSection.Value = _caller; }
         }

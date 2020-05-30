@@ -142,33 +142,36 @@ namespace Common
 
         private void Init()
         {
-            var filter = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, string>(CONFIGSETTING_FILTER, CONFIGDEFAULT_FILTER);
-            if (!string.IsNullOrEmpty(filter)) { ((ISupportFilters)this).Filter = filter; }
-            var categoryFilter = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, string>(CONFIGSETTING_CATEGORYFILTER, CONFIGDEFAULT_CATEGORYFILTER);
-            if (!string.IsNullOrEmpty(categoryFilter)) { this.CategoryFilter = categoryFilter; }
+            using (var sec = this.GetCodeSection())
+            {
+                var filter = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, string>(CONFIGSETTING_FILTER, CONFIGDEFAULT_FILTER);
+                if (!string.IsNullOrEmpty(filter)) { ((ISupportFilters)this).Filter = filter; }
+                var categoryFilter = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, string>(CONFIGSETTING_CATEGORYFILTER, CONFIGDEFAULT_CATEGORYFILTER);
+                if (!string.IsNullOrEmpty(categoryFilter)) { this.CategoryFilter = categoryFilter; }
 
-            _flushOnWrite = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, bool>(CONFIGSETTING_FLUSHONWRITE, CONFIGDEFAULT_FLUSHONWRITE);
-            _telemetrythreadsleep = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, int>(CONFIGSETTING_TELEMETRYTHREADSLEEP, CONFIGDEFAULT_TELEMETRYTHREADSLEEP);
-            _defaultCategory = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, string>(CONFIGSETTING_DEFAULTCATEGORY, CONFIGDEFAULT_DEFAULTCATEGORY);
-            _appInsightsKey = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, string>(CONFIGSETTING_APPINSIGHTSKEY, CONFIGDEFAULT_APPINSIGHTSKEY);
+                _flushOnWrite = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, bool>(CONFIGSETTING_FLUSHONWRITE, CONFIGDEFAULT_FLUSHONWRITE);
+                _telemetrythreadsleep = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, int>(CONFIGSETTING_TELEMETRYTHREADSLEEP, CONFIGDEFAULT_TELEMETRYTHREADSLEEP);
+                _defaultCategory = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, string>(CONFIGSETTING_DEFAULTCATEGORY, CONFIGDEFAULT_DEFAULTCATEGORY);
+                _appInsightsKey = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, string>(CONFIGSETTING_APPINSIGHTSKEY, CONFIGDEFAULT_APPINSIGHTSKEY);
 
-            _trackTraceEnabled = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, bool>(CONFIGSETTING_TRACKTRACEENABLED, CONFIGDEFAULT_TRACKTRACEENABLED);
-            _trackExceptionEnabled = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, bool>(CONFIGSETTING_TRACKEXCEPTIONENABLED, CONFIGDEFAULT_TRACKEXCEPTIONENABLED);
-            _trackEventEnabled = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, bool>(CONFIGSETTING_TRACKEVENTENABLED, CONFIGDEFAULT_TRACKEVENTENABLED);
+                _trackTraceEnabled = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, bool>(CONFIGSETTING_TRACKTRACEENABLED, CONFIGDEFAULT_TRACKTRACEENABLED);
+                _trackExceptionEnabled = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, bool>(CONFIGSETTING_TRACKEXCEPTIONENABLED, CONFIGDEFAULT_TRACKEXCEPTIONENABLED);
+                _trackEventEnabled = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, bool>(CONFIGSETTING_TRACKEVENTENABLED, CONFIGDEFAULT_TRACKEVENTENABLED);
 
-            var configuration = TelemetryConfiguration.CreateDefault();
-            configuration.InstrumentationKey = _appInsightsKey;
-            _telemetry = new TelemetryClient(configuration);
-            //this.Metrics = new List<KeyValuePair<string, object>>();
-            //this.Properties = new Dictionary<string, object>();
+                var configuration = TelemetryConfiguration.CreateDefault();
+                configuration.InstrumentationKey = _appInsightsKey;
+                _telemetry = new TelemetryClient(configuration);
+                //this.Metrics = new List<KeyValuePair<string, object>>();
+                //this.Properties = new Dictionary<string, object>();
 
-            var thicksPerMillisecond = TraceManager.Stopwatch.ElapsedTicks / TraceManager.Stopwatch.ElapsedMilliseconds;
-            string fileName = null, workingDirectory = null;
-            try { fileName = TraceManager.CurrentProcess?.StartInfo?.FileName; } catch { };
-            try { workingDirectory = TraceManager.CurrentProcess.StartInfo.WorkingDirectory; } catch { };
+                var thicksPerMillisecond = TraceManager.Stopwatch.ElapsedTicks / TraceManager.Stopwatch.ElapsedMilliseconds;
+                string fileName = null, workingDirectory = null;
+                try { fileName = TraceManager.CurrentProcess?.StartInfo?.FileName; } catch { };
+                try { workingDirectory = TraceManager.CurrentProcess.StartInfo.WorkingDirectory; } catch { };
 
-            this.Write($"Starting AppInsightsTraceListener for: ProcessName: '{TraceManager.ProcessName}', ProcessId: '{TraceManager.ProcessId}', FileName: '{fileName}', WorkingDirectory: '{workingDirectory}', EntryAssemblyFullName: '{TraceManager.EntryAssembly?.FullName}', ImageRuntimeVersion: '{TraceManager.EntryAssembly?.ImageRuntimeVersion}', Location: '{TraceManager.EntryAssembly?.Location}', thicksPerMillisecond: '{thicksPerMillisecond}'{Environment.NewLine}"); // "init"
-            this.Write($"_filter '{_filter}', _categoryFilter '{_categoryFilter}', _allowedEventTypes '{_allowedEventTypes}', _flushOnWrite '{_flushOnWrite}', _trackTraceEnabled '{_trackTraceEnabled}', _trackExceptionEnabled '{_trackExceptionEnabled}', _trackEventEnabled '{_trackEventEnabled}'{Environment.NewLine}"); // "init"
+                sec.Information($"Starting AppInsightsTraceListener for: ProcessName: '{TraceManager.ProcessName}', ProcessId: '{TraceManager.ProcessId}', FileName: '{fileName}', WorkingDirectory: '{workingDirectory}', EntryAssemblyFullName: '{TraceManager.EntryAssembly?.FullName}', ImageRuntimeVersion: '{TraceManager.EntryAssembly?.ImageRuntimeVersion}', Location: '{TraceManager.EntryAssembly?.Location}', thicksPerMillisecond: '{thicksPerMillisecond}'{Environment.NewLine}"); // "init"
+                sec.Debug($"_filter '{_filter}', _categoryFilter '{_categoryFilter}', _allowedEventTypes '{_allowedEventTypes}', _flushOnWrite '{_flushOnWrite}', _trackTraceEnabled '{_trackTraceEnabled}', _trackExceptionEnabled '{_trackExceptionEnabled}', _trackEventEnabled '{_trackEventEnabled}'{Environment.NewLine}"); // "init"
+            }
         }
 
         #region Trace Methods
@@ -194,7 +197,7 @@ namespace Common
         //    if (exception != null)
         //        _telemetry.TrackException(exception, properties, useMetrics ? this.Metrics as IDictionary<string, double> : null);
         //}
-        
+
         #endregion Trace Methods
         public override void Write(string s) { WriteLine((object)s); }
         public override void Write(object o)

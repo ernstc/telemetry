@@ -83,7 +83,7 @@ namespace Common
                 return ret;
             }
             catch (Exception ex) { TraceManager.Exception(ex); return ret; }
-            finally { /*TraceManager.Debug($"GetClassSetting('{name}') returned '{ret.GetLogString()}'");*/ }
+            finally { TraceManager.Debug($"GetClassSetting('{name}') returned '{ret.GetLogString()}'", "config"); }
         }
         #endregion
 

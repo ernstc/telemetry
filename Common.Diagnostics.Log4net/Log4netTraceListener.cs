@@ -133,85 +133,88 @@ namespace Common
 
         private void Init()
         {
-            if (_logRepository == null) { return; }
-            _CRReplace = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_CRREPLACE, CONFIGDEFAULT_CRREPLACE);
-            _LFReplace = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_LFREPLACE, CONFIGDEFAULT_LFREPLACE);  // ConfigurationHelper.GetSetting<int>(CONFIGSETTING_LFREPLACE, CONFIGDEFAULT_LFREPLACE);
-            var filter = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_FILTER, CONFIGDEFAULT_FILTER);
-            if (!string.IsNullOrEmpty(filter)) { ((ISupportFilters)this).Filter = filter; }
-            var categoryFilter = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_CATEGORYFILTER, CONFIGDEFAULT_CATEGORYFILTER);
-            if (!string.IsNullOrEmpty(categoryFilter)) { this.CategoryFilter = categoryFilter; }
-            _timestampFormat = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TIMESTAMPFORMAT, CONFIGDEFAULT_TIMESTAMPFORMAT);  // ConfigurationHelper.GetSetting<int>(CONFIGSETTING_TIMESTAMPFORMAT, CONFIGDEFAULT_TIMESTAMPFORMAT);
-            _showNestedFlow = ConfigurationHelper.GetClassSetting<Log4netTraceListener, bool>(CONFIGSETTING_SHOWNESTEDFLOW, CONFIGDEFAULT_SHOWNESTEDFLOW);
-            _flushOnWrite = ConfigurationHelper.GetClassSetting<Log4netTraceListener, bool>(CONFIGSETTING_FLUSHONWRITE, CONFIGDEFAULT_FLUSHONWRITE);
-            _processNamePadding = ConfigurationHelper.GetClassSetting<Log4netTraceListener, int>(CONFIGSETTING_PROCESSNAMEPADDING, CONFIGDEFAULT_PROCESSNAMEPADDING);
-            _sourcePadding = ConfigurationHelper.GetClassSetting<Log4netTraceListener, int>(CONFIGSETTING_SOURCEPADDING, CONFIGDEFAULT_SOURCEPADDING);
-            _categoryPadding = ConfigurationHelper.GetClassSetting<Log4netTraceListener, int>(CONFIGSETTING_CATEGORYPADDING, CONFIGDEFAULT_CATEGORYPADDING);
-            _sourceLevelPadding = ConfigurationHelper.GetClassSetting<Log4netTraceListener, int>(CONFIGSETTING_SOURCELEVELPADDING, CONFIGDEFAULT_SOURCELEVELPADDING);
-            _deltaPadding = ConfigurationHelper.GetClassSetting<Log4netTraceListener, int>(CONFIGSETTING_DELTAPADDING, CONFIGDEFAULT_DELTAPADDING);
-            _lastWriteContinuationEnabled = ConfigurationHelper.GetClassSetting<Log4netTraceListener, bool>(CONFIGSETTING_LASTWRITECONTINUATIONENABLED, CONFIGDEFAULT_LASTWRITECONTINUATIONENABLED);
-            _traceMessageFormatPrefix = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATPREFIX, CONFIGDEFAULT_TRACEMESSAGEFORMATPREFIX);
-            _traceMessageFormat = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMAT, CONFIGDEFAULT_TRACEMESSAGEFORMAT);
-            _traceMessageFormatVerbose = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATVERBOSE, CONFIGDEFAULT_TRACEMESSAGEFORMATVERBOSE); if (string.IsNullOrEmpty(_traceMessageFormatVerbose)) { _traceMessageFormatVerbose = _traceMessageFormat; }
-            _traceMessageFormatInformation = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATINFORMATION, CONFIGDEFAULT_TRACEMESSAGEFORMATINFORMATION); if (string.IsNullOrEmpty(_traceMessageFormatInformation)) { _traceMessageFormatInformation = _traceMessageFormat; }
-            _traceMessageFormatWarning = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATWARNING, CONFIGDEFAULT_TRACEMESSAGEFORMATWARNING); if (string.IsNullOrEmpty(_traceMessageFormatWarning)) { _traceMessageFormatWarning = _traceMessageFormat; }
-            _traceMessageFormatError = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATERROR, CONFIGDEFAULT_TRACEMESSAGEFORMATERROR); if (string.IsNullOrEmpty(_traceMessageFormatError)) { _traceMessageFormatError = _traceMessageFormat; }
-            _traceMessageFormatCritical = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATCRITICAL, CONFIGDEFAULT_TRACEMESSAGEFORMATCRITICAL); if (string.IsNullOrEmpty(_traceMessageFormatCritical)) { _traceMessageFormatCritical = _traceMessageFormat; }
-            _traceMessageFormatStart = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATSTART, CONFIGDEFAULT_TRACEMESSAGEFORMATSTART); if (string.IsNullOrEmpty(_traceMessageFormatStart)) { _traceMessageFormatStart = _traceMessageFormat; }
-            _traceMessageFormatStop = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATSTOP, CONFIGDEFAULT_TRACEMESSAGEFORMATSTOP); if (string.IsNullOrEmpty(_traceMessageFormatStop)) { _traceMessageFormatStop = _traceMessageFormat; }
-            _traceMessageFormatInlineStop = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATINLINESTOP, CONFIGDEFAULT_TRACEMESSAGEFORMATINLINESTOP); // if (string.IsNullOrEmpty(_traceMessageFormatInlineStop)) { _traceMessageFormatInlineStop = _traceMessageFormat; }
-            _traceMessageFormatSuspend = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATSUSPEND, CONFIGDEFAULT_TRACEMESSAGEFORMATSUSPEND); if (string.IsNullOrEmpty(_traceMessageFormatSuspend)) { _traceMessageFormatSuspend = _traceMessageFormat; }
-            _traceMessageFormatResume = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATRESUME, CONFIGDEFAULT_TRACEMESSAGEFORMATRESUME); if (string.IsNullOrEmpty(_traceMessageFormatResume)) { _traceMessageFormatResume = _traceMessageFormat; }
-            _traceMessageFormatTransfer = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATTRANSFER, CONFIGDEFAULT_TRACEMESSAGEFORMATTRANSFER); if (string.IsNullOrEmpty(_traceMessageFormatTransfer)) { _traceMessageFormatTransfer = _traceMessageFormat; }
-
-            var type = typeof(Log4netTraceListener);
-            _log = LogManager.GetLogger(type);
-
-            var thicksPerMillisecond = TraceManager.Stopwatch.ElapsedTicks / TraceManager.Stopwatch.ElapsedMilliseconds;
-            string fileName = null, workingDirectory = null;
-            try { fileName = TraceManager.CurrentProcess?.StartInfo?.FileName; } catch { };
-            try { workingDirectory = TraceManager.CurrentProcess.StartInfo.WorkingDirectory; } catch { };
-
-            this.Write($"Starting Log4netTraceListener for: ProcessName: '{TraceManager.ProcessName}', ProcessId: '{TraceManager.ProcessId}', FileName: '{fileName}', WorkingDirectory: '{workingDirectory}', EntryAssemblyFullName: '{TraceManager.EntryAssembly?.FullName}', ImageRuntimeVersion: '{TraceManager.EntryAssembly?.ImageRuntimeVersion}', Location: '{TraceManager.EntryAssembly?.Location}', thicksPerMillisecond: '{thicksPerMillisecond}'{Environment.NewLine}"); // "init"
-            this.Write($"_filter '{_filter}', _categoryFilter '{_categoryFilter}', _allowedEventTypes '{_allowedEventTypes}', _showNestedFlow '{_showNestedFlow}', _flushOnWrite '{_flushOnWrite}', _cRReplace '{_CRReplace}', _lFReplace '{_LFReplace}', _timestampFormat '{_timestampFormat}'{Environment.NewLine}"); // "init"
-            this.Write($"_processNamePadding '{_processNamePadding}', _sourcePadding '{_sourcePadding}', _categoryPadding '{_categoryPadding}', _sourceLevelPadding '{_sourceLevelPadding}'{Environment.NewLine}"); // "init"
-            this.Write($"_traceMessageFormat '{_traceMessageFormat}', _traceMessageFormatVerbose '{_traceMessageFormatVerbose}', _traceMessageFormatWarning '{_traceMessageFormatWarning}', _traceMessageFormatError '{_traceMessageFormatError}', _traceMessageFormatCritical '{_traceMessageFormatCritical}', _traceMessageFormatStart '{_traceMessageFormatStart}', _traceMessageFormatStop '{_traceMessageFormatStop}, _traceMessageFormatInlineStop '{_traceMessageFormatInlineStop}'{Environment.NewLine}"); // "init"
-
-            if (!string.IsNullOrEmpty(_traceMessageFormatPrefix))
+            using (var sec = this.GetCodeSection())
             {
-                _traceMessageFormat = _traceMessageFormat.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatVerbose = _traceMessageFormatVerbose.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatInformation = _traceMessageFormatInformation.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatWarning = _traceMessageFormatWarning.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatError = _traceMessageFormatError.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatCritical = _traceMessageFormatCritical.Substring(_traceMessageFormatPrefix.Length);
+                if (_logRepository == null) { return; }
+                _CRReplace = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_CRREPLACE, CONFIGDEFAULT_CRREPLACE);
+                _LFReplace = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_LFREPLACE, CONFIGDEFAULT_LFREPLACE);  // ConfigurationHelper.GetSetting<int>(CONFIGSETTING_LFREPLACE, CONFIGDEFAULT_LFREPLACE);
+                var filter = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_FILTER, CONFIGDEFAULT_FILTER);
+                if (!string.IsNullOrEmpty(filter)) { ((ISupportFilters)this).Filter = filter; }
+                var categoryFilter = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_CATEGORYFILTER, CONFIGDEFAULT_CATEGORYFILTER);
+                if (!string.IsNullOrEmpty(categoryFilter)) { this.CategoryFilter = categoryFilter; }
+                _timestampFormat = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TIMESTAMPFORMAT, CONFIGDEFAULT_TIMESTAMPFORMAT);  // ConfigurationHelper.GetSetting<int>(CONFIGSETTING_TIMESTAMPFORMAT, CONFIGDEFAULT_TIMESTAMPFORMAT);
+                _showNestedFlow = ConfigurationHelper.GetClassSetting<Log4netTraceListener, bool>(CONFIGSETTING_SHOWNESTEDFLOW, CONFIGDEFAULT_SHOWNESTEDFLOW);
+                _flushOnWrite = ConfigurationHelper.GetClassSetting<Log4netTraceListener, bool>(CONFIGSETTING_FLUSHONWRITE, CONFIGDEFAULT_FLUSHONWRITE);
+                _processNamePadding = ConfigurationHelper.GetClassSetting<Log4netTraceListener, int>(CONFIGSETTING_PROCESSNAMEPADDING, CONFIGDEFAULT_PROCESSNAMEPADDING);
+                _sourcePadding = ConfigurationHelper.GetClassSetting<Log4netTraceListener, int>(CONFIGSETTING_SOURCEPADDING, CONFIGDEFAULT_SOURCEPADDING);
+                _categoryPadding = ConfigurationHelper.GetClassSetting<Log4netTraceListener, int>(CONFIGSETTING_CATEGORYPADDING, CONFIGDEFAULT_CATEGORYPADDING);
+                _sourceLevelPadding = ConfigurationHelper.GetClassSetting<Log4netTraceListener, int>(CONFIGSETTING_SOURCELEVELPADDING, CONFIGDEFAULT_SOURCELEVELPADDING);
+                _deltaPadding = ConfigurationHelper.GetClassSetting<Log4netTraceListener, int>(CONFIGSETTING_DELTAPADDING, CONFIGDEFAULT_DELTAPADDING);
+                _lastWriteContinuationEnabled = ConfigurationHelper.GetClassSetting<Log4netTraceListener, bool>(CONFIGSETTING_LASTWRITECONTINUATIONENABLED, CONFIGDEFAULT_LASTWRITECONTINUATIONENABLED);
+                _traceMessageFormatPrefix = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATPREFIX, CONFIGDEFAULT_TRACEMESSAGEFORMATPREFIX);
+                _traceMessageFormat = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMAT, CONFIGDEFAULT_TRACEMESSAGEFORMAT);
+                _traceMessageFormatVerbose = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATVERBOSE, CONFIGDEFAULT_TRACEMESSAGEFORMATVERBOSE); if (string.IsNullOrEmpty(_traceMessageFormatVerbose)) { _traceMessageFormatVerbose = _traceMessageFormat; }
+                _traceMessageFormatInformation = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATINFORMATION, CONFIGDEFAULT_TRACEMESSAGEFORMATINFORMATION); if (string.IsNullOrEmpty(_traceMessageFormatInformation)) { _traceMessageFormatInformation = _traceMessageFormat; }
+                _traceMessageFormatWarning = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATWARNING, CONFIGDEFAULT_TRACEMESSAGEFORMATWARNING); if (string.IsNullOrEmpty(_traceMessageFormatWarning)) { _traceMessageFormatWarning = _traceMessageFormat; }
+                _traceMessageFormatError = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATERROR, CONFIGDEFAULT_TRACEMESSAGEFORMATERROR); if (string.IsNullOrEmpty(_traceMessageFormatError)) { _traceMessageFormatError = _traceMessageFormat; }
+                _traceMessageFormatCritical = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATCRITICAL, CONFIGDEFAULT_TRACEMESSAGEFORMATCRITICAL); if (string.IsNullOrEmpty(_traceMessageFormatCritical)) { _traceMessageFormatCritical = _traceMessageFormat; }
+                _traceMessageFormatStart = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATSTART, CONFIGDEFAULT_TRACEMESSAGEFORMATSTART); if (string.IsNullOrEmpty(_traceMessageFormatStart)) { _traceMessageFormatStart = _traceMessageFormat; }
+                _traceMessageFormatStop = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATSTOP, CONFIGDEFAULT_TRACEMESSAGEFORMATSTOP); if (string.IsNullOrEmpty(_traceMessageFormatStop)) { _traceMessageFormatStop = _traceMessageFormat; }
+                _traceMessageFormatInlineStop = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATINLINESTOP, CONFIGDEFAULT_TRACEMESSAGEFORMATINLINESTOP); // if (string.IsNullOrEmpty(_traceMessageFormatInlineStop)) { _traceMessageFormatInlineStop = _traceMessageFormat; }
+                _traceMessageFormatSuspend = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATSUSPEND, CONFIGDEFAULT_TRACEMESSAGEFORMATSUSPEND); if (string.IsNullOrEmpty(_traceMessageFormatSuspend)) { _traceMessageFormatSuspend = _traceMessageFormat; }
+                _traceMessageFormatResume = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATRESUME, CONFIGDEFAULT_TRACEMESSAGEFORMATRESUME); if (string.IsNullOrEmpty(_traceMessageFormatResume)) { _traceMessageFormatResume = _traceMessageFormat; }
+                _traceMessageFormatTransfer = ConfigurationHelper.GetClassSetting<Log4netTraceListener, string>(CONFIGSETTING_TRACEMESSAGEFORMATTRANSFER, CONFIGDEFAULT_TRACEMESSAGEFORMATTRANSFER); if (string.IsNullOrEmpty(_traceMessageFormatTransfer)) { _traceMessageFormatTransfer = _traceMessageFormat; }
 
-                _traceMessageFormatStart = _traceMessageFormatStart.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatStop = _traceMessageFormatStop.Substring(_traceMessageFormatPrefix.Length);
-                //_traceMessageFormatInlineStop = _traceMessageFormatInlineStop.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatSuspend = _traceMessageFormatSuspend.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatResume = _traceMessageFormatResume.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatTransfer = _traceMessageFormatTransfer.Substring(_traceMessageFormatPrefix.Length);
+                var type = typeof(Log4netTraceListener);
+                _log = LogManager.GetLogger(type);
+
+                var thicksPerMillisecond = TraceManager.Stopwatch.ElapsedTicks / TraceManager.Stopwatch.ElapsedMilliseconds;
+                string fileName = null, workingDirectory = null;
+                try { fileName = TraceManager.CurrentProcess?.StartInfo?.FileName; } catch { };
+                try { workingDirectory = TraceManager.CurrentProcess.StartInfo.WorkingDirectory; } catch { };
+
+                sec.Information($"Starting Log4netTraceListener for: ProcessName: '{TraceManager.ProcessName}', ProcessId: '{TraceManager.ProcessId}', FileName: '{fileName}', WorkingDirectory: '{workingDirectory}', EntryAssemblyFullName: '{TraceManager.EntryAssembly?.FullName}', ImageRuntimeVersion: '{TraceManager.EntryAssembly?.ImageRuntimeVersion}', Location: '{TraceManager.EntryAssembly?.Location}', thicksPerMillisecond: '{thicksPerMillisecond}'{Environment.NewLine}"); // "init"
+                sec.Debug($"_filter '{_filter}', _categoryFilter '{_categoryFilter}', _allowedEventTypes '{_allowedEventTypes}', _showNestedFlow '{_showNestedFlow}', _flushOnWrite '{_flushOnWrite}', _cRReplace '{_CRReplace}', _lFReplace '{_LFReplace}', _timestampFormat '{_timestampFormat}'{Environment.NewLine}"); // "init"
+                sec.Debug($"_processNamePadding '{_processNamePadding}', _sourcePadding '{_sourcePadding}', _categoryPadding '{_categoryPadding}', _sourceLevelPadding '{_sourceLevelPadding}'{Environment.NewLine}"); // "init"
+                sec.Debug($"_traceMessageFormat '{_traceMessageFormat}', _traceMessageFormatVerbose '{_traceMessageFormatVerbose}', _traceMessageFormatWarning '{_traceMessageFormatWarning}', _traceMessageFormatError '{_traceMessageFormatError}', _traceMessageFormatCritical '{_traceMessageFormatCritical}', _traceMessageFormatStart '{_traceMessageFormatStart}', _traceMessageFormatStop '{_traceMessageFormatStop}, _traceMessageFormatInlineStop '{_traceMessageFormatInlineStop}'{Environment.NewLine}"); // "init"
+
+                if (!string.IsNullOrEmpty(_traceMessageFormatPrefix))
+                {
+                    _traceMessageFormat = _traceMessageFormat.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatVerbose = _traceMessageFormatVerbose.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatInformation = _traceMessageFormatInformation.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatWarning = _traceMessageFormatWarning.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatError = _traceMessageFormatError.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatCritical = _traceMessageFormatCritical.Substring(_traceMessageFormatPrefix.Length);
+
+                    _traceMessageFormatStart = _traceMessageFormatStart.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatStop = _traceMessageFormatStop.Substring(_traceMessageFormatPrefix.Length);
+                    //_traceMessageFormatInlineStop = _traceMessageFormatInlineStop.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatSuspend = _traceMessageFormatSuspend.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatResume = _traceMessageFormatResume.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatTransfer = _traceMessageFormatTransfer.Substring(_traceMessageFormatPrefix.Length);
+                }
+
+                int i = 0;
+                var variables = "now, processName, source, category, tidpid, sourceLevel, nesting, message, lastLineDelta, lastLineDeltaPadded, delta, deltaPadded, result, messageNesting".Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries).Select((s) => new { name = s, position = i++ }).ToList();
+                variables.ForEach(v =>
+                {
+                    _traceMessageFormatPrefix = _traceMessageFormatPrefix.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormat = _traceMessageFormat.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatVerbose = _traceMessageFormatVerbose.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatInformation = _traceMessageFormatInformation.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatWarning = _traceMessageFormatWarning.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatError = _traceMessageFormatError.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatCritical = _traceMessageFormatCritical.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+
+                    _traceMessageFormatStart = _traceMessageFormatStart.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatStop = _traceMessageFormatStop.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatInlineStop = _traceMessageFormatInlineStop.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatSuspend = _traceMessageFormatSuspend.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatResume = _traceMessageFormatResume.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatTransfer = _traceMessageFormatTransfer.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                });
             }
-
-            int i = 0;
-            var variables = "now, processName, source, category, tidpid, sourceLevel, nesting, message, lastLineDelta, lastLineDeltaPadded, delta, deltaPadded, result, messageNesting".Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries).Select((s) => new { name = s, position = i++ }).ToList();
-            variables.ForEach(v =>
-            {
-                _traceMessageFormatPrefix = _traceMessageFormatPrefix.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormat = _traceMessageFormat.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatVerbose = _traceMessageFormatVerbose.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatInformation = _traceMessageFormatInformation.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatWarning = _traceMessageFormatWarning.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatError = _traceMessageFormatError.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatCritical = _traceMessageFormatCritical.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-
-                _traceMessageFormatStart = _traceMessageFormatStart.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatStop = _traceMessageFormatStop.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatInlineStop = _traceMessageFormatInlineStop.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatSuspend = _traceMessageFormatSuspend.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatResume = _traceMessageFormatResume.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatTransfer = _traceMessageFormatTransfer.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-            });
 
         }
 
