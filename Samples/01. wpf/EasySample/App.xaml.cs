@@ -11,7 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls; 
+using System.Windows.Controls;
 #endregion
 
 namespace EasySample
@@ -23,9 +23,9 @@ namespace EasySample
 
         static App()
         {
-            TraceManager.Init(SourceLevels.All, null);
             using (var sec = TraceManager.GetCodeSection(T))
             {
+                //TraceManager.Init(SourceLevels.All, null);
                 try
                 {
                     sec.Debug("this is a debug trace");
