@@ -28,6 +28,7 @@ namespace Common
         public const string CONFIGSETTING_TIMESTAMPFORMAT = "TimestampFormat"; public const string CONFIGDEFAULT_TIMESTAMPFORMAT = "HH:mm:ss.fff"; // dd/MM/yyyy 
         public const string CONFIGSETTING_FLUSHONWRITE = "FlushOnWrite"; public const bool CONFIGDEFAULT_FLUSHONWRITE = false;
         public const string CONFIGSETTING_SHOWNESTEDFLOW = "ShowNestedFlow"; public const bool CONFIGDEFAULT_SHOWNESTEDFLOW = false;
+        public const string CONFIGSETTING_SHOWTRACECOST = "ShowTraceCost"; public const bool CONFIGDEFAULT_SHOWTRACECOST = false;
         public const string CONFIGSETTING_MAXMESSAGELEVEL = "MaxMessageLevel"; public const int CONFIGDEFAULT_MAXMESSAGELEVEL = 3;
         public const string CONFIGSETTING_MAXMESSAGELEN = "MaxMessageLen"; public const int CONFIGDEFAULT_MAXMESSAGELEN = 256;
         public const string CONFIGSETTING_MAXMESSAGELENINFO = "MaxMessageLenInfo"; public const int CONFIGDEFAULT_MAXMESSAGELENINFO = 512;
@@ -58,11 +59,12 @@ namespace Common
         bool _lastWriteContinuationEnabled;
         public string _CRReplace, _LFReplace;
         public string _timestampFormat;
-        public bool _showNestedFlow, _flushOnWrite;
-        public int _processNamePadding, _sourcePadding, _categoryPadding, _sourceLevelPadding, _deltaPadding, _traceMessageFormatPrefixLen;
+        public bool _showNestedFlow, _showTraceCost, _flushOnWrite;
+        public int _processNamePadding, _sourcePadding, _categoryPadding, _sourceLevelPadding, _deltaPadding, _traceDeltaPadding, _traceMessageFormatPrefixLen;
         public string _traceMessageFormatPrefix, _traceMessageFormat, _traceMessageFormatVerbose, _traceMessageFormatInformation, _traceMessageFormatWarning, _traceMessageFormatError, _traceMessageFormatCritical;
         public string _traceMessageFormatStart, _traceMessageFormatStop, _traceMessageFormatInlineStop, _traceMessageFormatSuspend, _traceMessageFormatResume, _traceMessageFormatTransfer;
         public string _filter, _categoryFilter;
+        public string _traceDeltaDefault;
         public TraceEventType _allowedEventTypes = TraceEventType.Critical | TraceEventType.Error | TraceEventType.Warning | TraceEventType.Information | TraceEventType.Verbose | TraceEventType.Start | TraceEventType.Stop | TraceEventType.Suspend | TraceEventType.Resume | TraceEventType.Transfer;
         private readonly int _timeout = 10;
         TraceEntry lastWrite = default(TraceEntry);
@@ -110,6 +112,7 @@ namespace Common
                 if (!string.IsNullOrEmpty(categoryFilter)) { this.CategoryFilter = categoryFilter; }
                 _timestampFormat = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, string>(CONFIGSETTING_TIMESTAMPFORMAT, CONFIGDEFAULT_TIMESTAMPFORMAT);  // ConfigurationHelper.GetSetting<int>(CONFIGSETTING_TIMESTAMPFORMAT, CONFIGDEFAULT_TIMESTAMPFORMAT);
                 _showNestedFlow = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, bool>(CONFIGSETTING_SHOWNESTEDFLOW, CONFIGDEFAULT_SHOWNESTEDFLOW);
+                _showTraceCost = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, bool>(CONFIGSETTING_SHOWTRACECOST, CONFIGDEFAULT_SHOWTRACECOST);
                 _flushOnWrite = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, bool>(CONFIGSETTING_FLUSHONWRITE, CONFIGDEFAULT_FLUSHONWRITE);
                 _processNamePadding = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, int>(CONFIGSETTING_PROCESSNAMEPADDING, CONFIGDEFAULT_PROCESSNAMEPADDING);
                 _sourcePadding = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, int>(CONFIGSETTING_SOURCEPADDING, CONFIGDEFAULT_SOURCEPADDING);
@@ -300,7 +303,20 @@ namespace Common
 
                 lastWrite = entry;
                 if (!(e is TraceEntry)) { lastWrite.ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds; }
-                sbMessages.Append(message);
+
+                var traceDeltaPadded = default(string);
+                if (e is TraceEntry)
+                {
+                    //, TraceStartTicks = startTicks
+                    var endTraceTicks = TraceManager.Stopwatch.ElapsedTicks;
+                    traceDeltaPadded = (endTraceTicks - entry.TraceStartTicks).ToString("###0"); // .PadLeft(5)
+                    if (traceDeltaPadded != null && traceDeltaPadded.Length < _traceDeltaPadding) { traceDeltaPadded = traceDeltaPadded.PadLeft(_traceDeltaPadding); }
+                    if (traceDeltaPadded.Length > _traceDeltaPadding) { _traceDeltaPadding = traceDeltaPadded.Length; _traceDeltaDefault = new string(' ', _traceDeltaPadding); }
+                }
+                else { traceDeltaPadded = _traceDeltaDefault; };
+
+                var fullMessage = _showTraceCost ? $"{traceDeltaPadded}.{message}" : message;
+                sbMessages.Append(fullMessage);
             });
 
             if (sbMessages.Length > 0)
@@ -361,6 +377,19 @@ namespace Common
 
                 lastWrite = entry;
                 if (!(e is TraceEntry)) { lastWrite.ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds; }
+
+                var traceDeltaPadded = default(string);
+                if (e is TraceEntry)
+                {
+                    //, TraceStartTicks = startTicks
+                    var endTraceTicks = TraceManager.Stopwatch.ElapsedTicks;
+                    traceDeltaPadded = (endTraceTicks - entry.TraceStartTicks).ToString("###0"); // .PadLeft(5)
+                    if (traceDeltaPadded != null && traceDeltaPadded.Length < _traceDeltaPadding) { traceDeltaPadded = traceDeltaPadded.PadLeft(_traceDeltaPadding); }
+                    if (traceDeltaPadded.Length > _traceDeltaPadding) { _traceDeltaPadding = traceDeltaPadded.Length; _traceDeltaDefault = new string(' ', _traceDeltaPadding); }
+                }
+                else { traceDeltaPadded = _traceDeltaDefault; };
+
+                var fullMessage = _showTraceCost ? $"{traceDeltaPadded}.{message}" : message;
                 sbMessages.Append(message);
             });
 

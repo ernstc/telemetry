@@ -161,28 +161,42 @@ namespace Common
 
         public static CodeSection GetCodeSection<T>(this T pthis, object payload = null, SourceLevels sourceLevel = SourceLevels.Verbose, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
-            return new CodeSection(typeof(T), null, payload, TraceSource, sourceLevel, category, properties, source, memberName, sourceFilePath, sourceLineNumber);
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
+            var sec = new CodeSection(typeof(T), null, payload, TraceSource, sourceLevel, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber);
+            //var stopTicks = TraceManager.Stopwatch.ElapsedTicks;
+            //var delta = stopTicks - startTicks;
+            return sec;
         }
         public static CodeSection GetCodeSection(Type t, object payload = null, SourceLevels sourceLevel = SourceLevels.Verbose, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
-            return new CodeSection(t, null, payload, TraceSource, sourceLevel, category, properties, source, memberName, sourceFilePath, sourceLineNumber);
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
+            var sec = new CodeSection(t, null, payload, TraceSource, sourceLevel, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber);
+            return sec;
         }
         public static CodeSection GetCodeSection<T>(object payload = null, SourceLevels sourceLevel = SourceLevels.Verbose, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
-            return new CodeSection(typeof(T), null, payload, TraceSource, sourceLevel, category, properties, source, memberName, sourceFilePath, sourceLineNumber);
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
+            var sec = new CodeSection(typeof(T), null, payload, TraceSource, sourceLevel, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber);
+            return sec;
         }
 
         public static CodeSection GetNamedSection<T>(this T pthis, string name = null, object payload = null, SourceLevels sourceLevel = SourceLevels.Verbose, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
-            return new CodeSection(typeof(T), name, payload, TraceSource, sourceLevel, category, properties, source, memberName, sourceFilePath, sourceLineNumber);
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
+            var sec = new CodeSection(typeof(T), name, payload, TraceSource, sourceLevel, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber);
+            return sec;
         }
         public static CodeSection GetNamedSection(Type t, string name = null, object payload = null, SourceLevels sourceLevel = SourceLevels.Verbose, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
-            return new CodeSection(t, name, payload, TraceSource, sourceLevel, category, properties, source, memberName, sourceFilePath, sourceLineNumber);
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
+            var sec = new CodeSection(t, name, payload, TraceSource, sourceLevel, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber);
+            return sec;
         }
         public static CodeSection GetNamedSection<T>(string name = null, object payload = null, SourceLevels sourceLevel = SourceLevels.Verbose, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
-            return new CodeSection(typeof(T), name, payload, TraceSource, sourceLevel, category, properties, source, memberName, sourceFilePath, sourceLineNumber);
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
+            var sec = new CodeSection(typeof(T), name, payload, TraceSource, sourceLevel, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber);
+            return sec;
         }
 
         //public static void Debug(object obj, string category = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
@@ -193,65 +207,74 @@ namespace Common
         //}
         public static void Debug(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             var type = typeof(Application);
             CodeSection caller = CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Verbose, category, properties, source, memberName, sourceFilePath, sourceLineNumber, true);
+            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Verbose, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
             innerCodeSection.Debug(message, category, properties, source);
         }
         public static void Debug(FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             var type = typeof(Application);
             CodeSection caller = CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Verbose, category, properties, source, memberName, sourceFilePath, sourceLineNumber, true);
+            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Verbose, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
             innerCodeSection.Debug(message, category, properties, source);
         }
         public static void Information(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             var type = typeof(Application);
             CodeSection caller = CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Information, category, properties, source, memberName, sourceFilePath, sourceLineNumber, true);
+            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Information, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
             innerCodeSection.Information(message, category, properties, source);
         }
         public static void Information(FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             var type = typeof(Application);
             CodeSection caller = CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Information, category, properties, source, memberName, sourceFilePath, sourceLineNumber, true);
+            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Information, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
             innerCodeSection.Information(message, category, properties, source);
         }
         public static void Warning(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             var type = typeof(Application);
             CodeSection caller = CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Warning, category, properties, source, memberName, sourceFilePath, sourceLineNumber, true);
+            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Warning, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
             innerCodeSection.Warning(message, category, properties, source);
         }
         public static void Warning(FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             var type = typeof(Application);
             CodeSection caller = CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Warning, category, properties, source, memberName, sourceFilePath, sourceLineNumber, true);
+            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Warning, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
             innerCodeSection.Warning(message, category, properties, source);
         }
         public static void Error(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             var type = typeof(Application);
             CodeSection caller = CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Error, category, properties, source, memberName, sourceFilePath, sourceLineNumber, true);
+            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Error, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
             innerCodeSection.Error(message, category, properties, source);
         }
         public static void Error(FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             var type = typeof(Application);
             CodeSection caller = CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Error, category, properties, source, memberName, sourceFilePath, sourceLineNumber, true);
+            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Error, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
             innerCodeSection.Error(message, category, properties, source);
         }
         public static void Exception(Exception exception, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             var type = typeof(Application);
             CodeSection caller = CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Error, category, properties, source, memberName, sourceFilePath, sourceLineNumber, true);
+            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(type, null, null, null, SourceLevels.Error, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
             innerCodeSection.Exception(exception, category, properties, source);
         }
 
@@ -496,6 +519,7 @@ namespace Common
         public SourceLevels SourceLevel { get; set; }
         public long ElapsedMilliseconds { get; set; }
         public DateTimeOffset Timestamp { get; set; }
+        public long TraceStartTicks { get; set; }
         public Exception Exception { get; set; }
         [JsonIgnore]
         public Thread Thread { get; set; }
@@ -568,6 +592,7 @@ namespace Common
         public string Source { get; set; }
         public string Category { get; set; }
         public long CallStartMilliseconds { get; set; }
+        public long CallStartTicks { get; set; }
         public DateTime SystemStartTime { get; set; }
         public string OperationID { get; set; }
         public bool IsInnerScope { get; set; }
@@ -601,12 +626,12 @@ namespace Common
             this.ModuleContext = pCopy.ModuleContext;
         }
         public CodeSection(object pthis, string name = null, object payload = null, TraceSource traceSource = null, SourceLevels sourceLevel = SourceLevels.Verbose,
-                           string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
-                           : this(pthis.GetType(), name, payload, traceSource, sourceLevel, category, properties, source, memberName, sourceFilePath, sourceLineNumber)
+                           string category = null, IDictionary<string, object> properties = null, string source = null, long startTicks = 0, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+                           : this(pthis.GetType(), name, payload, traceSource, sourceLevel, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber)
         { }
 
         public CodeSection(Type type, string name = null, object payload = null, TraceSource traceSource = null, SourceLevels sourceLevel = SourceLevels.Verbose,
-            string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0, bool disableStartEndTraces = false)
+                           string category = null, IDictionary<string, object> properties = null, string source = null, long startTicks = 0, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0, bool disableStartEndTraces = false)
         {
             this.Name = name;
             this.Payload = payload;
@@ -624,6 +649,7 @@ namespace Common
             this.Properties = properties;
             this.Source = source;
             this.CallStartMilliseconds = _stopwatch.ElapsedMilliseconds;
+            this.CallStartTicks = startTicks;
 
             _caller = TraceManager.CurrentCodeSection.Value;
             if (disableStartEndTraces == false) { TraceManager.CurrentCodeSection.Value = this; }
@@ -664,11 +690,12 @@ namespace Common
 
         public void Debug(object obj, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Verbose)) { return; }
 
             var message = obj.GetLogString();
 
-            var entry = new TraceEntry() { Message = message, TraceEventType = TraceEventType.Verbose, SourceLevel = SourceLevels.Verbose, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
+            var entry = new TraceEntry() { Message = message, TraceEventType = TraceEventType.Verbose, SourceLevel = SourceLevels.Verbose, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
             if (!TraceManager._lockListenersNotifications.Value)
             {
                 if (TraceSource?.Listeners != null && TraceSource.Listeners.Count > 0) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
@@ -682,9 +709,10 @@ namespace Common
         }
         public void Debug(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Verbose)) { return; }
 
-            var entry = new TraceEntry() { Message = message.Value, TraceEventType = TraceEventType.Verbose, SourceLevel = SourceLevels.Verbose, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
+            var entry = new TraceEntry() { Message = message.Value, TraceEventType = TraceEventType.Verbose, SourceLevel = SourceLevels.Verbose, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
             if (!TraceManager._lockListenersNotifications.Value)
             {
                 if (TraceSource?.Listeners != null && TraceSource.Listeners.Count > 0) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
@@ -698,11 +726,12 @@ namespace Common
         }
         public void Debug(FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Verbose)) { return; }
 
             try
             {
-                var entry = new TraceEntry() { Message = string.Format(message.Format, message.GetArguments()), TraceEventType = TraceEventType.Verbose, SourceLevel = SourceLevels.Verbose, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
+                var entry = new TraceEntry() { Message = string.Format(message.Format, message.GetArguments()), TraceEventType = TraceEventType.Verbose, SourceLevel = SourceLevels.Verbose, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
                 if (!TraceManager._lockListenersNotifications.Value)
                 {
                     if (TraceSource?.Listeners != null && TraceSource.Listeners.Count > 0) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
@@ -719,9 +748,10 @@ namespace Common
 
         public void Information(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Information)) { return; }
 
-            var entry = new TraceEntry() { Message = message.Value, TraceEventType = TraceEventType.Information, SourceLevel = SourceLevels.Information, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
+            var entry = new TraceEntry() { Message = message.Value, TraceEventType = TraceEventType.Information, SourceLevel = SourceLevels.Information, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
             if (!TraceManager._lockListenersNotifications.Value)
             {
                 if (TraceSource?.Listeners != null && TraceSource.Listeners.Count > 0) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
@@ -735,9 +765,10 @@ namespace Common
         }
         public void Information(FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Information)) { return; }
 
-            var entry = new TraceEntry() { Message = string.Format(message.Format, message.GetArguments()), TraceEventType = TraceEventType.Information, SourceLevel = SourceLevels.Information, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
+            var entry = new TraceEntry() { Message = string.Format(message.Format, message.GetArguments()), TraceEventType = TraceEventType.Information, SourceLevel = SourceLevels.Information, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
             if (!TraceManager._lockListenersNotifications.Value)
             {
                 if (TraceSource?.Listeners != null && TraceSource.Listeners.Count > 0) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
@@ -752,9 +783,10 @@ namespace Common
 
         public void Warning(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Warning)) { return; }
 
-            var entry = new TraceEntry() { Message = message.Value, TraceEventType = TraceEventType.Warning, SourceLevel = SourceLevels.Warning, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
+            var entry = new TraceEntry() { Message = message.Value, TraceEventType = TraceEventType.Warning, SourceLevel = SourceLevels.Warning, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
             if (!TraceManager._lockListenersNotifications.Value)
             {
                 if (TraceSource?.Listeners != null && TraceSource.Listeners.Count > 0) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
@@ -769,9 +801,10 @@ namespace Common
         }
         public void Warning(FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Warning)) { return; }
 
-            var entry = new TraceEntry() { Message = string.Format(message.Format, message.GetArguments()), TraceEventType = TraceEventType.Warning, SourceLevel = SourceLevels.Warning, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
+            var entry = new TraceEntry() { Message = string.Format(message.Format, message.GetArguments()), TraceEventType = TraceEventType.Warning, SourceLevel = SourceLevels.Warning, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
             if (!TraceManager._lockListenersNotifications.Value)
             {
                 if (TraceSource?.Listeners != null && TraceSource.Listeners.Count > 0) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
@@ -786,9 +819,10 @@ namespace Common
 
         public void Error(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Error)) { return; }
 
-            var entry = new TraceEntry() { Message = message.Value, TraceEventType = TraceEventType.Error, SourceLevel = SourceLevels.Error, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
+            var entry = new TraceEntry() { Message = message.Value, TraceEventType = TraceEventType.Error, SourceLevel = SourceLevels.Error, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
             if (!TraceManager._lockListenersNotifications.Value)
             {
                 if (TraceSource?.Listeners != null && TraceSource.Listeners.Count > 0) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
@@ -802,9 +836,10 @@ namespace Common
         }
         public void Error(FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Error)) { return; }
 
-            var entry = new TraceEntry() { Message = string.Format(message.Format, message.GetArguments()), TraceEventType = TraceEventType.Error, SourceLevel = SourceLevels.Error, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
+            var entry = new TraceEntry() { Message = string.Format(message.Format, message.GetArguments()), TraceEventType = TraceEventType.Error, SourceLevel = SourceLevels.Error, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
             if (!TraceManager._lockListenersNotifications.Value)
             {
                 if (TraceSource?.Listeners != null && TraceSource.Listeners.Count > 0) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
@@ -819,6 +854,7 @@ namespace Common
 
         public void Exception(Exception exception, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = true)
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             if (exception == null) return;
             if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Critical)) { return; }
 
@@ -836,7 +872,8 @@ namespace Common
                 ThreadID = Thread.CurrentThread.ManagedThreadId,
                 ApartmentState = Thread.CurrentThread.GetApartmentState(),
                 DisableCRLFReplace = disableCRLFReplace,
-                ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds
+                ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds,
+                TraceStartTicks = startTicks
             };
             if (!TraceManager._lockListenersNotifications.Value)
             {
@@ -853,6 +890,7 @@ namespace Common
         bool _disposed = false;
         public void Dispose()
         {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
             if (_disposed) { return; }
             _disposed = true;
 
@@ -861,13 +899,13 @@ namespace Common
                 if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Stop) || this.DisableStartEndTraces == true) { return; }
                 if (!TraceManager._lockListenersNotifications.Value)
                 {
-                    var entry = new TraceEntry() { TraceEventType = TraceEventType.Stop, TraceSource = this.TraceSource, Message = null, Properties = this.Properties, Source = this.Source, Category = this.Category, SourceLevel = this.SourceLevel, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
+                    var entry = new TraceEntry() { TraceEventType = TraceEventType.Stop, TraceSource = this.TraceSource, Message = null, Properties = this.Properties, Source = this.Source, Category = this.Category, SourceLevel = this.SourceLevel, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
                     if (TraceSource?.Listeners != null && TraceSource.Listeners.Count > 0) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
                     if (Trace.Listeners != null && Trace.Listeners.Count > 0) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
                 }
                 else
                 {
-                    var entry = new TraceEntry() { TraceEventType = TraceEventType.Stop, TraceSource = this.TraceSource, Message = null, Properties = this.Properties, Source = this.Source, Category = this.Category, SourceLevel = this.SourceLevel, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds };
+                    var entry = new TraceEntry() { TraceEventType = TraceEventType.Stop, TraceSource = this.TraceSource, Message = null, Properties = this.Properties, Source = this.Source, Category = this.Category, SourceLevel = this.SourceLevel, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
                     TraceManager._pendingEntries.Enqueue(entry);
                     if (TraceManager._isInitializeComplete.Value == false && TraceManager._isInitializing.Value == false) { TraceManager.Init(SourceLevels.All, null); }
                 }
