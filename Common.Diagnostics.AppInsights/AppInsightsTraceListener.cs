@@ -59,12 +59,18 @@ namespace Common
         }
         public AppInsightsTraceListener() : base()
         {
-            Init();
+            using (var sec = this.GetCodeSection())
+            {
+                Init();
+            }
         }
         public AppInsightsTraceListener(string userId, string deviceId) : this()
         {
-            _telemetry.Context.User.Id = userId ?? string.Empty;
-            _telemetry.Context.Device.Id = deviceId ?? string.Empty;
+            using (var sec = this.GetCodeSection())
+            {
+                _telemetry.Context.User.Id = userId ?? string.Empty;
+                _telemetry.Context.Device.Id = deviceId ?? string.Empty;
+            }
         }
         //public AppInsightsTraceListener() { Init(); }
         public AppInsightsTraceListener(Stream stream) : base() { Init(); }

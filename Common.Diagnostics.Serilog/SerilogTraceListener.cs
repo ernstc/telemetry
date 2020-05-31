@@ -74,22 +74,32 @@ namespace Common
             var assembly = Assembly.GetEntryAssembly();
             if (assembly == null) { assembly = Assembly.GetExecutingAssembly(); }
         }
-        public SerilogTraceListener() { Init(); }
+        public SerilogTraceListener() {
+            using (var sec = this.GetCodeSection()) { 
+                Init(); 
+            }
+        }
         //public SerilogTraceListener(ILog log) { _log = log; }
         // Summary: Initializes a new instance of the Common.SerilogTraceListener class that writes to the specified output stream.
         // Parameters:  stream: The System.IO.Stream to receive the output.
         // Exceptions:  T:System.ArgumentNullException: stream is null.
-        public SerilogTraceListener(Stream stream) : base() { Init(); }
+        public SerilogTraceListener(Stream stream) : base() {
+            using (var sec = this.GetCodeSection()) { 
+                Init(); 
+            }
+        }
 
         // Summary: Initializes a new instance of the Common.SerilogTraceListener class that writes to the specified text writer.
         // Parameters:  writer: The System.IO.TextWriter to receive the output.
         // Exceptions:  T:System.ArgumentNullException: writer is null.
-        public SerilogTraceListener(TextWriter writer) { Init(); }
+        public SerilogTraceListener(TextWriter writer) {
+            using (var sec = this.GetCodeSection()) { Init(); }
+        }
         // Summary: Initializes a new instance of the Common.SerilogTraceListener class that writes to the specified file.
         // Parameters:
         //   fileName: The name of the file to receive the output.
         // Exceptions: T:System.ArgumentNullException: fileName is null.
-        public SerilogTraceListener(string fileName) : base() { Init(); }
+        public SerilogTraceListener(string fileName) : base() { using (var sec = this.GetCodeSection()) { Init(); } }
 
         // Summary: Initializes a new instance of the Common.SerilogTraceListener
         //          class that writes to the specified output stream and has the specified name.
@@ -97,7 +107,7 @@ namespace Common
         //   stream: The System.IO.Stream to receive the output.
         //   name: The name of the new instance of the trace listener.
         // Exceptions: T:System.ArgumentNullException: stream is null.
-        public SerilogTraceListener(Stream stream, string name) { Init(); }
+        public SerilogTraceListener(Stream stream, string name) { using (var sec = this.GetCodeSection()) { Init(); } }
 
         // Summary: Initializes a new instance of the Common.SerilogTraceListener
         //          class that writes to the specified text writer and has the specified name.
@@ -107,7 +117,7 @@ namespace Common
         // Exceptions:
         //   T:System.ArgumentNullException:
         //     writer is null.
-        public SerilogTraceListener(TextWriter writer, string name) { Init(); }
+        public SerilogTraceListener(TextWriter writer, string name) { using (var sec = this.GetCodeSection()) { Init(); } }
 
         // Summary: Initializes a new instance of the Common.SerilogTraceListener
         //          class that writes to the specified file and has the specified name.
@@ -116,7 +126,7 @@ namespace Common
         // Exceptions:
         //   T:System.ArgumentNullException:
         //     fileName is null.
-        public SerilogTraceListener(string fileName, string name) { Init(); }
+        public SerilogTraceListener(string fileName, string name) { using (var sec = this.GetCodeSection()) { Init(); } }
         #endregion
 
         private void Init()

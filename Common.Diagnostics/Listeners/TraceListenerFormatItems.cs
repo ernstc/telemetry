@@ -81,10 +81,19 @@ namespace Common
         static TraceListenerFormatItems()
         {
         }
-        public TraceListenerFormatItems() { Init(); }
+        public TraceListenerFormatItems()
+        {
+            using (var sec = this.GetCodeSection())
+            {
+                Init();
+            }
+        }
         public TraceListenerFormatItems(TraceListener innerListener) : this()
         {
-            InnerListener = innerListener;
+            using (var sec = this.GetCodeSection(new { innerListener }))
+            {
+                InnerListener = innerListener;
+            }
         }
         #endregion
 
@@ -547,8 +556,11 @@ namespace Common
     {
         public TraceListenerDefault() : base()
         {
-            TraceListener innerListener = new DefaultTraceListener();
-            InnerListener = innerListener;
+            using (var sec = this.GetCodeSection())
+            {
+                TraceListener innerListener = new DefaultTraceListener();
+                InnerListener = innerListener;
+            }
         }
     }
     //
