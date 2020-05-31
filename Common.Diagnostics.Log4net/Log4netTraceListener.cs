@@ -462,7 +462,6 @@ namespace Common
                 var traceDeltaPadded = default(string);
                 if (e is TraceEntry)
                 {
-                    //, TraceStartTicks = startTicks
                     var endTraceTicks = TraceManager.Stopwatch.ElapsedTicks;
                     traceDeltaPadded = (endTraceTicks - entry.TraceStartTicks).ToString("###0"); // .PadLeft(5)
                     if (traceDeltaPadded != null && traceDeltaPadded.Length < _traceDeltaPadding) { traceDeltaPadded = traceDeltaPadded.PadLeft(_traceDeltaPadding); }
