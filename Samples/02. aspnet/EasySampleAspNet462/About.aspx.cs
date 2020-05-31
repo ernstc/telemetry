@@ -12,8 +12,10 @@ namespace EasySampleAspNet462
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            TraceManager.Init(System.Diagnostics.SourceLevels.All, null);
-            using (var sec = this.GetCodeSection()) { }
+            //TraceManager.Init(System.Diagnostics.SourceLevels.All, null);
+            using (var sec = this.GetCodeSection()) {
+            
+            }
         }
     }
 }
