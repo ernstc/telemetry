@@ -17,12 +17,12 @@ namespace EasySampleAspNet462
         void Application_Start(object sender, EventArgs e)
         {
             //TraceManager.Init(System.Diagnostics.SourceLevels.All, null);
-            //using (var sec = TraceManager.GetCodeSection(T))
-            //{
-                // Code that runs on application startup
+            using (var sec = TraceManager.GetCodeSection(T))
+            {
+                //Code that runs on application startup
                 RouteConfig.RegisterRoutes(RouteTable.Routes);
                 BundleConfig.RegisterBundles(BundleTable.Bundles);
-            //}
+            }
         }
     }
 }

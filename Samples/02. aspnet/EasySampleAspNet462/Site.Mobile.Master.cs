@@ -1,3 +1,4 @@
+using Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,10 @@ namespace EasySampleAspNet462
     {
         protected void Page_Load(object sender, EventArgs e)
         {
+            using (var sec = this.GetCodeSection())
+            {
+
+            }
 
         }
     }
