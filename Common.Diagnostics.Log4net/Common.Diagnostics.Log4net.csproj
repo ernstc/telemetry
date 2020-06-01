@@ -7,6 +7,9 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 		<RootNamespace>Common.Diagnostics</RootNamespace>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+		<PackageProjectUrl>https://github.com/diginsight/telemetry</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/diginsight/telemetry.git</RepositoryUrl>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -15,6 +18,13 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Common.Diagnostics\Common.Diagnostics.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="..\LICENSE.md">
+	    <Pack>True</Pack>
+	    <PackagePath></PackagePath>
+	  </None>
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">

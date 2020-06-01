@@ -7,6 +7,9 @@
 	<AssemblyName>Common.Diagnostics.AppInsights</AssemblyName>
 	<RootNamespace>Common.Diagnostics</RootNamespace>
 	<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+	<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+	<PackageProjectUrl>https://github.com/diginsight/telemetry</PackageProjectUrl>
+	<RepositoryUrl>https://github.com/diginsight/telemetry.git</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +20,13 @@
   <ItemGroup>
 	  <ProjectReference Include="..\Common.Diagnostics\Common.Diagnostics.csproj" />
 	</ItemGroup>
+  
+  <ItemGroup>
+    <None Include="..\LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
   
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="set OutDir=$(OutDir)&#xD;&#xA;set ConfigurationName=$(ConfigurationName)&#xD;&#xA;set ProjectName=$(ProjectName)&#xD;&#xA;set TargetName=$(TargetName)&#xD;&#xA;set TargetPath=$(TargetPath)&#xD;&#xA;set ProjectPath=$(ProjectPath)&#xD;&#xA;set ProjectFileName=$(ProjectFileName)&#xD;&#xA;set TargetExt=$(TargetExt)&#xD;&#xA;set TargetFileName=$(TargetFileName)&#xD;&#xA;set DevEnvDir=$(DevEnvDir)&#xD;&#xA;set TargetDir=$(TargetDir)&#xD;&#xA;set ProjectDir=$(ProjectDir)&#xD;&#xA;set SolutionFileName=$(SolutionFileName)&#xD;&#xA;set SolutionPath=$(SolutionPath)&#xD;&#xA;set SolutionDir=$(SolutionDir)&#xD;&#xA;set SolutionName=$(SolutionName)&#xD;&#xA;set PlatformName=$(PlatformName)&#xD;&#xA;set ProjectExt=$(ProjectExt)&#xD;&#xA;set SolutionExt=$(SolutionExt)&#xD;&#xA;type &quot;$(ProjectDir)postbuild.cmd&quot;&amp;gt;.\postbuild.cmd&#xD;&#xA;.\postbuild.cmd" />
