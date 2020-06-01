@@ -12,10 +12,10 @@ add telemetry to your methods with the following instruction
 `using (var sec = this.GetCodeSection())`
 
 write information to the listeners with the following instructions
-`sec.Debug(\"this is a debug trace\", \"User\");`
-`sec.Information(\"this is a Information trace\", \"Raw\");`
-`sec.Warning(\"this is a Warning trace\", \"User.Report\");`
-`sec.Error(\"this is a error trace\", \"Resource\");`
+`sec.Debug(&quot;this is a debug trace&quot;, &quot;User&quot;);`
+`sec.Information(&quot;this is a Information trace&quot;, &quot;Raw&quot;);`
+`sec.Warning(&quot;this is a Warning trace&quot;, &quot;User.Report&quot;);`
+`sec.Error(&quot;this is a error trace&quot;, &quot;Resource&quot;);`
 
 Common.Diagnostics component is supported on .Net Framework 4.6.2+ and .Net Core 3.0+.
 Visit [telemetry][] for more information.
