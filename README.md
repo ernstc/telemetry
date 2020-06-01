@@ -17,29 +17,30 @@ Common.Diagnostics component is supported on .Net Framework 4.6.2+ and .Net Core
 Steps to use Common.Diagnostics:
 1.	Add a package reference to the package __Common.Diagnostics.1.0.\*.\*.nupkg__
 2.	Configure the suitable listeners 
-3.	Add using statements to add telemetry to code sections 
+3.	Add telemetry to your code with code sections and named sections:
 ```c#
-	- using (var sec = this.GetCodeSection()) // defines a code section within an instance method
 	- using (var sec = TraceManager.GetCodeSection(T)) // defines a code section within a static method
+	- using (var sec = this.GetCodeSection()) // defines a code section within an instance method
+	- using (var sec = TraceManager.GetCodeSection(T)) // defines a code section with a custom name within a static method
+	- using (var sec = this.GetNamedSection("<sectionName>")) // defines a code section with a custom name within an instance method
 ```
-	statements to instrument code sections
-4.	Add trace statements to your code to send custom objects and strings to the listeners
+4.	Add trace statements to your code to send custom data to the listeners
 
 The following statements send telemetry information to the listeners when a code section `sec` is available
 ```c#
-	sec.Debug 
-	sec.Information 
-	sec.Warning
-	sec.Error 
-	sec.Exception 
+	- sec.Debug 
+	- sec.Information 
+	- sec.Warning
+	- sec.Error 
+	- sec.Exception 
 ```
 The following statements send telemetry information to the listeners on methods where no code section instance is available
 ```c#
-	TraceManager.Debug 
-	TraceManager.Information 
-	TraceManager.Warning
-	TraceManager.Error 
-	TraceManager.Exception 
+	- TraceManager.Debug 
+	- TraceManager.Information 
+	- TraceManager.Warning
+	- TraceManager.Error 
+	- TraceManager.Exception 
 ```
 call to provide telemetry data to listeners 
 
