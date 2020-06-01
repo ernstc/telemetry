@@ -17,17 +17,30 @@ Common.Diagnostics component is supported on .Net Framework 4.6.2+ and .Net Core
 Steps to use Common.Diagnostics:
 1.	Add a package reference to the package __Common.Diagnostics.1.0.\*.\*.nupkg__
 2.	Configure the suitable listeners 
-3.	Add `TraceManager.Init` call to initialize execution flow.
-4.	Add `TraceManager.Debug`, 
+3.	Add using statements to add telemetry to code sections 
+```c#
+	- using (var sec = this.GetCodeSection()) // defines a code section within an instance method
+	- using (var sec = TraceManager.GetCodeSection(T)) // defines a code section within a static method
+```
+	statements to instrument code sections
+4.	Add trace statements to your code to send custom objects and strings to the listeners
+	the following statements send telemetry information to the listeners when a code section `sec` is available
+```c#
+		`sec.Debug`, 
+		`sec.Information`, 
+		`sec.Warning`, 
+		`sec.Error`, 
+		`sec.Exception`, 
+```
+	the following statements send telemetry information to the listeners on methods where no code section instance is available
+```c#
+		`TraceManager.Debug`, 
 		`TraceManager.Information`, 
 		`TraceManager.Warning`, 
 		`TraceManager.Error`, 
 		`TraceManager.Exception`, 
+```
 		call to provide telemetry data to listeners 
-5.	Add <br>
-	- `using (var sec = this.GetCodeSection())` and
-	- `using (var sec = TraceManager.GetCodeSection(T))`
-	statements to instrument code sections
 
 # TELEMETRY LISTENERS
 __Common.Diagnostics__ include a set of listeners to direct telemetry data to the suitable targets.<br>
@@ -41,8 +54,8 @@ Additional listeners are provided for more specific needs such as the __EventLog
 # ADDITIONAL INFORMATION
 
 ## Starting Telemetry
-Common.Diagnostics is initialized with  TraceManager.Init call.<br>
-This call loads the configured listeners and starts sending data to them.<br>
+To start telemetry for your application just add Code Sections and Trace statements to your code.<br>
+__Common.Diagnostics__ will load the configured listeners and start sending data to them.<br>
 
 Traces can then be added of any level to instrument application code.<br>
 

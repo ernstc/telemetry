@@ -9,7 +9,7 @@ Start and completion of methods and code sections are gathered by means of `usin
 
 add telemetry to your methods with the following instruction 
 
-```
+```c#
 using (var sec = this.GetCodeSection())
 ```
 
