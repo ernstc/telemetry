@@ -126,7 +126,9 @@ In case of instance methods, the type argument can be omitted and the current cl
 In the example above, parameters are provided to the code section with their names and values by means of an **unamed class**.
 All information gathered with the code section instance, the parameter names and values will the available to the listeners at call start, call completion and every trace statement.
 
-The image below shows Information level trace obtained from file based listeners such as the **Common.Diagnostics.Log4net**:
+The image below shows Information level trace obtained from file based listeners such as the **Common.Diagnostics.Log4net**.
+In this case the listener is configured to show telemetry as a flat log file.
+
 ![alt text](/images/03._Information_trace_unnested.jpg "Telemetry with a trace listener rendering") 
 <!-- 
 <img src="/diginsight/telemetry/blob/master/images/03._Information_trace_unnested.jpg?raw=true" 
@@ -135,7 +137,8 @@ The image below shows Information level trace obtained from file based listeners
 	style="border: 1px solid black;" />
 -->
 
-The same listeners can be configured to show the entire execution flow, with debug level information, parameters (and return values):
+The same listeners can be configured to show the entire execution flow, with debug level information, method parameters and return values.
+In this case the listener is configured to show the full application flow with methods nesting.
 
 ![alt text](/images/04._Debug_trace_with_nesting.jpg "Debug trace with nesting")
 <!-- 
