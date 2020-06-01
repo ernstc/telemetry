@@ -11,6 +11,8 @@
 		<PackageProjectUrl>https://github.com/diginsight/telemetry</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/diginsight/telemetry.git</RepositoryUrl>
 		<PackageIcon>EkipConnect.png</PackageIcon>
+		<Authors>diginsight</Authors>
+		<Description>Common.Diagnostics.Log4net provides a Log4net listener for Common.Diagnostics</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

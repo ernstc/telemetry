@@ -9,6 +9,7 @@
 		<PackageProjectUrl>https://github.com/diginsight/telemetry</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/diginsight/telemetry.git</RepositoryUrl>
 		<PackageIcon>EkipConnect.png</PackageIcon>
+		<Authors>diginsight</Authors>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU'">
