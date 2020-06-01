@@ -15,7 +15,6 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-using Microsoft.Extensions.Hosting;
 #endregion
 
 namespace Common
@@ -28,24 +27,7 @@ namespace Common
         #endregion
         public static IConfiguration Configuration { get; internal set; }
 
-        static ConfigurationHelper() {
-            if (Configuration == null)
-            {
-                //var env = hostingContext.HostingEnvironment;
-                var jsonFile = "";
-                var jsonFileName = "appsettings";
-                var currentDirectory = Directory.GetCurrentDirectory();
-                var appdomainFolder = System.AppDomain.CurrentDomain.BaseDirectory.Trim('\\');
-
-                jsonFile = currentDirectory == appdomainFolder ? $"{jsonFileName}.json" : Path.Combine(appdomainFolder, $"{jsonFileName}.json");
-                var builder = new Microsoft.Extensions.Configuration.ConfigurationBuilder()
-                              .AddJsonFile(jsonFile, true, true)
-                              //.AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true)
-                              .AddInMemoryCollection();
-                builder.AddEnvironmentVariables();
-                Configuration = builder.Build();
-            }
-        }
+        static ConfigurationHelper() { }
 
         public static void Init(IConfiguration configuration)
         {
