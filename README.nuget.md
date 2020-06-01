@@ -18,4 +18,4 @@ write information to the listeners with the following instructions
 `sec.Error('this is a error trace', 'Resource');`
 
 Common.Diagnostics component is supported on .Net Framework 4.6.2+ and .Net Core 3.0+.
-Look at https://github.com/diginsight/telemetry for additional information.
+Look at 'https://github.com/diginsight/telemetry' for additional information.
