@@ -10,6 +10,7 @@
     <RepositoryUrl>https://github.com/diginsight/telemetry.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>telemetry diginsight diagnostic insight</PackageTags>
+    <PackageIcon>EkipConnect.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU'">
@@ -58,6 +59,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\images\01. Project image\EkipConnect\EkipConnect.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
     <None Include="..\LICENSE.md">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
