@@ -42,7 +42,6 @@ The following statements send telemetry information to the listeners on methods 
 	- TraceManager.Error 
 	- TraceManager.Exception 
 ```
-call to provide telemetry data to listeners 
 
 # TELEMETRY LISTENERS
 __Common.Diagnostics__ include a set of listeners to direct telemetry data to the suitable targets.<br>
@@ -56,8 +55,8 @@ Additional listeners are provided for more specific needs such as the __EventLog
 # ADDITIONAL INFORMATION
 
 ## Starting Telemetry
-To start telemetry for your application just add Code Sections and Trace statements to your code.<br>
-__Common.Diagnostics__ will load the configured listeners and start sending data to them.<br>
+Just add Code Sections and Trace statements to your code to start telemetry for your application.<br>
+__Common.Diagnostics__ will load listeners according to the configuration and start sending data to them.<br>
 
 Traces can then be added of any level to instrument application code.<br>
 
@@ -68,8 +67,6 @@ Traces can then be added of any level to instrument application code.<br>
 
 		static App() 
 		{ 
-			TraceManager.Init(SourceLevels.All, null);
-            
 			using (var sec = TraceManager.GetCodeSection(T)) { 
 			}
 		}
