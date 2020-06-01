@@ -23,10 +23,9 @@ namespace EasySample
 
         static App()
         {
-            TraceManager.Debug("Starting telemetry");
             using (var sec = TraceManager.GetCodeSection(T))
             {
-                //TraceManager.Init(SourceLevels.All, null);
+                // TraceManager.Init(SourceLevels.All, null);
                 try
                 {
                     sec.Debug("this is a debug trace");

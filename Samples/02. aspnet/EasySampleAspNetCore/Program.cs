@@ -16,7 +16,7 @@ namespace EasySampleAspNetCore
 
         public static void Main(string[] args)
         {
-            TraceManager.Init(System.Diagnostics.SourceLevels.All, null);
+            //TraceManager.Init(System.Diagnostics.SourceLevels.All, null);
             using (var sec = TraceManager.GetCodeSection(T, new { args }))
             {
                 CreateHostBuilder(args).Build().Run();

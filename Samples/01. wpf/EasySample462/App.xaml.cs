@@ -19,7 +19,7 @@ namespace EasySample462
         
         static App()
         {
-            TraceManager.Init(SourceLevels.All, null);
+            //TraceManager.Init(SourceLevels.All, null);
             using (var sec = TraceManager.GetCodeSection(T))
             {
                 try
