@@ -12,6 +12,7 @@ add telemetry to your methods with the following instruction
 `using (var sec = this.GetCodeSection())`
 
 write information to the listeners with the following instructions
+`<p>(&quot;double in single&quot;)</p>`
 `sec.Debug(&quot;this is a debug trace&quot;, &quot;User&quot;);`
 `sec.Information(&quot;this is a Information trace&quot;, &quot;Raw&quot;);`
 `sec.Warning(&quot;this is a Warning trace&quot;, &quot;User.Report&quot;);`
