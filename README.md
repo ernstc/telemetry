@@ -58,7 +58,7 @@ Additional listeners are provided for more specific needs such as the __EventLog
 Just add Code Sections and Trace statements to your code to start telemetry for your application.<br>
 __Common.Diagnostics__ will load listeners according to the configuration and start sending data to them.<br>
 
-Traces can then be added of any level to instrument application code.<br>
+You can add Traces at different levels to instrument application code.<br>
 
 <!-- 
 	public partial class App : Application
@@ -82,9 +82,8 @@ width="800" height="700"
 -->
 
 ## Instrumenting a code section
-Any code section can be instrumented by means of `GetCodeSection()` 
-call within a `using() statement` <br>
-In this case, traces can be added as shown below:
+Use `GetCodeSection()` within a `using() statement` to add telemetry to any method.
+Within the code section `sec`, traces can be added as shown below.
 
 The **method name** is obtained by compiler generated parameters, **parameter names** and **values** can be provided with an unnamed class into the paiload parameter.<br>
 If any, a code section **return value** can be provided in the CodeSection `Result` property.<br>
