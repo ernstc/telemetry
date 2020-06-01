@@ -12,7 +12,7 @@
 		<RepositoryUrl>https://github.com/diginsight/telemetry.git</RepositoryUrl>
 		<PackageIcon>EkipConnect.png</PackageIcon>
 		<Authors>diginsight</Authors>
-		<Description>Common.Diagnostics.Log4net provides a Log4net listener for Common.Diagnostics</Description>
+		<Description>provides a System.Diagnostics listener that sends Common.Diagnostics telemetry to Log4net</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

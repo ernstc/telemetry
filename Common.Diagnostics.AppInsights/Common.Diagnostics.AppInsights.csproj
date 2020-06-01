@@ -12,7 +12,7 @@
 	<RepositoryUrl>https://github.com/diginsight/telemetry.git</RepositoryUrl>
 	<PackageIcon>EkipConnect.png</PackageIcon>
 	<Authors>diginsight</Authors>
-	<Description>Common.Diagnostics.AppInsights provides an AppInsights listener for Common.Diagnostics</Description>
+	<Description>provides a System.Diagnostics listener that sends Common.Diagnostics telemetry to AppInsights</Description>
   </PropertyGroup>
 
   <ItemGroup>

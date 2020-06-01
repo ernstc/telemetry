@@ -12,7 +12,7 @@
     <PackageTags>telemetry diginsight diagnostic insight</PackageTags>
     <PackageIcon>EkipConnect.png</PackageIcon>
     <Authors>diginsight</Authors>
-	<Description>Common.Diagnostics component provides telemetry with the full application flow to System.Diagnostic listeners.</Description>
+	<Description>provides telemetry with the full application flow to System.Diagnostic listeners.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU'">
