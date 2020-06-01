@@ -257,6 +257,14 @@ stages:
               nuGetFeedType: 'internal'
               publishVstsFeed: $(artifactsFeed)
               allowPackageConflicts: true
+
+          - task: NuGetCommand@2
+            inputs:
+              command: 'push'
+              packagesToPush: '..\packages\$(buildConfiguration)\*.$(version).nupkg'
+              nuGetFeedType: 'external'
+              publishFeedCredentials: 'nuget feed telemetry'
+
         # routeTraffic:
         #   steps:
         #     - script: echo routeTraffic
