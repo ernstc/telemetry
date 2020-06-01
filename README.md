@@ -24,23 +24,24 @@ Steps to use Common.Diagnostics:
 ```
 	statements to instrument code sections
 4.	Add trace statements to your code to send custom objects and strings to the listeners
-	the following statements send telemetry information to the listeners when a code section `sec` is available
+
+The following statements send telemetry information to the listeners when a code section `sec` is available
 ```c#
-		`sec.Debug`, 
-		`sec.Information`, 
-		`sec.Warning`, 
-		`sec.Error`, 
-		`sec.Exception`, 
+	sec.Debug 
+	sec.Information 
+	sec.Warning
+	sec.Error 
+	sec.Exception 
 ```
-	the following statements send telemetry information to the listeners on methods where no code section instance is available
+The following statements send telemetry information to the listeners on methods where no code section instance is available
 ```c#
-		`TraceManager.Debug`, 
-		`TraceManager.Information`, 
-		`TraceManager.Warning`, 
-		`TraceManager.Error`, 
-		`TraceManager.Exception`, 
+	TraceManager.Debug 
+	TraceManager.Information 
+	TraceManager.Warning
+	TraceManager.Error 
+	TraceManager.Exception 
 ```
-		call to provide telemetry data to listeners 
+call to provide telemetry data to listeners 
 
 # TELEMETRY LISTENERS
 __Common.Diagnostics__ include a set of listeners to direct telemetry data to the suitable targets.<br>
