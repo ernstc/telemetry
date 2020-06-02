@@ -43,8 +43,9 @@ The following statements send telemetry information to the listeners on methods 
 4.	Configure the suitable listeners 
 the image below shows available diginsight packages with listeners to send data to log files, event log Application insight and WPF textboxes.
 
-![alt text](/images/09._diginsight_telemetry_packages.jpg "diginsight telemetry packages")
-<!-- 
+![alt text](/diginsight/telemetry/blob/master/images/09.%20diginsight%20telemetry%20packages.jpg?raw=true "diginsight telemetry packages")
+<!-- /diginsight/telemetry/blob/master/images/09.%20diginsight%20telemetry%20packages.jpg?raw=true
+/images/09._diginsight_telemetry_packages.jpg
 width="800" height="700" 
 <img src="/diginsight/telemetry/blob/master/images/09. diginsight telemetry packages.jpg?raw=true" 
 	 alt="Starting telemetry in your application"
