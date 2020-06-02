@@ -52,8 +52,8 @@ width="800" height="700"
 	 title="Starting telemetry in your application" 
 	 style="user-select: auto;" />
 -->
-Server side, telemetry is rendered by default to the default System.Diagnostics.DefaultTraceListener.
-So, default telemetry is available to the streaming log, and visual studio output window as shown below.
+Telemetry is rendered by default to the default System.Diagnostics.DefaultTraceListener.
+So, default telemetry is available in the visual studio output window and, server side, to the streaming log as shown below.
 
 ![alt text](/images/10.%20diginsight%20telemetry%20default%20listener.jpg "Server side telemetry to the default System.Diagnostics.DefaultTraceListener").
 <!-- 
