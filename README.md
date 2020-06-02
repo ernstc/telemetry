@@ -41,7 +41,7 @@ The following statements send telemetry information to the listeners on methods 
 	- TraceManager.Exception 
 ```
 Telemetry is rendered by default to the default System.Diagnostics.DefaultTraceListener.
-So, default telemetry is available in the visual studio output window and, server side, to the streaming log as shown below.
+So, default telemetry is available in the visual studio output window as shown below and, server side, to the azure streaming log.
 
 ![alt text](/images/10.%20diginsight%20telemetry%20default%20listener.jpg "Server side telemetry to the default System.Diagnostics.DefaultTraceListener").
 <!-- 
@@ -64,10 +64,10 @@ width="800" height="700"
 	 title="Starting telemetry in your application" 
 	 style="user-select: auto;" />
 -->
-<br>
+
 Only `Information`, `Warning`, `Error` and `Exception` 
-are generally sent to cloud based telemetry listeners such as the __Common.Diagnostics.Appinsight__ listener.<br>
-Debug information with the full execution flow is only used for listeners that write data to local repositories such as __Common.Diagnostics.Log4net__ and __Common.Diagnostics.Serilog__ listeners.<br>
+shoud be sent to cloud based telemetry listeners such as the __Common.Diagnostics.Appinsight__ listener.<br>
+Debug information with the full execution flow normally used for listeners that write data to local repositories such as __Common.Diagnostics.Log4net__ and __Common.Diagnostics.Serilog__ listeners.<br>
 Additional filters can be specified to select which data should be sent to which listener.<br>
 Additional listeners are provided for more specific needs such as the __EventLogTraceListener__ and __TextboxTraceListener__ within __Common.Diagnostics.Win__ package.<br>
 
