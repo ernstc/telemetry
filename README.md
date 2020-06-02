@@ -40,18 +40,6 @@ The following statements send telemetry information to the listeners on methods 
 	- TraceManager.Error 
 	- TraceManager.Exception 
 ```
-4.	Configure the suitable listeners 
-the image below shows available diginsight packages with listeners to send data to log files, event log Application insight and WPF textboxes.
-
-![alt text](/images/09.%20diginsight%20telemetry%20packages.jpg "diginsight telemetry packages")
-<!-- /diginsight/telemetry/blob/master/images/09.%20diginsight%20telemetry%20packages.jpg?raw=true
-
-width="800" height="700" 
-<img src="/diginsight/telemetry/blob/master/images/09. diginsight telemetry packages.jpg?raw=true" 
-	 alt="Starting telemetry in your application"
-	 title="Starting telemetry in your application" 
-	 style="user-select: auto;" />
--->
 Telemetry is rendered by default to the default System.Diagnostics.DefaultTraceListener.
 So, default telemetry is available in the visual studio output window and, server side, to the streaming log as shown below.
 
@@ -65,13 +53,24 @@ width="800" height="700"
 -->
 
 # TELEMETRY LISTENERS
-__Common.Diagnostics__ include a set of listeners to direct telemetry data to the suitable targets.<br>
+The image below shows available diginsight packages with listeners to send data to the most popular logging systems, available with .Net framework.
+
+![alt text](/images/09.%20diginsight%20telemetry%20packages.jpg "diginsight telemetry packages")
+<!-- /diginsight/telemetry/blob/master/images/09.%20diginsight%20telemetry%20packages.jpg?raw=true
+
+width="800" height="700" 
+<img src="/diginsight/telemetry/blob/master/images/09. diginsight telemetry packages.jpg?raw=true" 
+	 alt="Starting telemetry in your application"
+	 title="Starting telemetry in your application" 
+	 style="user-select: auto;" />
+-->
 <br>
 Only `Information`, `Warning`, `Error` and `Exception` 
 are generally sent to cloud based telemetry listeners such as the __Common.Diagnostics.Appinsight__ listener.<br>
 Debug information with the full execution flow is only used for listeners that write data to local repositories such as __Common.Diagnostics.Log4net__ and __Common.Diagnostics.Serilog__ listeners.<br>
 Additional filters can be specified to select which data should be sent to which listener.<br>
 Additional listeners are provided for more specific needs such as the __EventLogTraceListener__ and __TextboxTraceListener__ within __Common.Diagnostics.Win__ package.<br>
+
 
 # ADDITIONAL INFORMATION
 
