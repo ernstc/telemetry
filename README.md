@@ -2,11 +2,11 @@
 __Common.Diagnostics__ component provides __telemetry__ with application execution flow to configurable listeners.<br>
 <br>
 Basic execution flow is gathered by means of compiler generated information (eg. methodnames are obtained with `[CallerMemberName]` attribute).<br>
-Start and completion of methods and code sections are gathered by means of `using` statements with a `CodeSection` class.<br>
+Start and completion of code sections are gathered by means of `using` statements with a `CodeSection` class.<br>
 References to Execution flow are gathered into a `TraceEntry` structure and sent to the configured listeners by means of .Net framework System.Diagnostics interfaces.<br>
 <br>
 Listeners receive telemetry data as structured TraceEntries.<br>
-so, telemetry data is sent to the listeners without being read, serialized or processed anyway by TraceManager and CodeSection classes.<br>
+So, telemetry data is sent to the listeners without being read, serialized or processed anyway by TraceManager and CodeSection classes.<br>
 This allows to every single listener *to access, process and display only the information that is required for its specific purpose*.<br>
 Also, this allows saving processing cost of data that is not rendered (eg. debug message strings are not even created when debug telemetry is disabled)<br>
 <br>
@@ -16,16 +16,14 @@ Common.Diagnostics component is supported on .Net Framework 4.6.2+ and .Net Core
 <!-- span style="background-color: #FFFF99">TraceManager.Debug</span -->
 Steps to use Common.Diagnostics:
 1.	Add a package reference to the package __Common.Diagnostics.1.0.\*.\*.nupkg__
-2.	Configure the suitable listeners 
-3.	Add telemetry to your code with code sections and named sections:
+2.	Add telemetry to your code with code sections and named sections:
 ```c#
 	- using (var sec = TraceManager.GetCodeSection(T)) // defines a code section within a static method
 	- using (var sec = this.GetCodeSection()) // defines a code section within an instance method
 	- using (var sec = TraceManager.GetCodeSection(T)) // defines a code section with a custom name within a static method
 	- using (var sec = this.GetNamedSection("<sectionName>")) // defines a code section with a custom name within an instance method
 ```
-4.	Add trace statements to your code to send custom data to the listeners
-
+3.	Add trace statements to your code to send custom data to the listeners
 The following statements send telemetry information to the listeners when a code section `sec` is available
 ```c#
 	- sec.Debug 
@@ -42,6 +40,27 @@ The following statements send telemetry information to the listeners on methods 
 	- TraceManager.Error 
 	- TraceManager.Exception 
 ```
+4.	Configure the suitable listeners 
+the image below shows available diginsight packages with listeners to send data to log files, event log Application insight and WPF textboxes.
+![alt text](/images/09. diginsight telemetry packages.jpg "Adding traces to your application")
+<!-- 
+width="800" height="700" 
+<img src="/diginsight/telemetry/blob/master/images/09. diginsight telemetry packages.jpg?raw=true" 
+	 alt="Starting telemetry in your application"
+	 title="Starting telemetry in your application" 
+	 style="user-select: auto;" />
+-->
+Server side, telemetry is rendered by default to the default System.Diagnostics.DefaultTraceListener.
+So, default telemetry is available to the streaming log, and visual studio output window as shown below.
+
+![alt text](/images/10. diginsight telemetry default listener.jpg "Server side telemetry to the default System.Diagnostics.DefaultTraceListener").
+<!-- 
+width="800" height="700" 
+<img src="/diginsight/telemetry/blob/master/images/10. diginsight telemetry default listener.jpg?raw=true" 
+	 alt="Starting telemetry in your application"
+	 title="Starting telemetry in your application" 
+	 style="user-select: auto;" />
+-->
 
 # TELEMETRY LISTENERS
 __Common.Diagnostics__ include a set of listeners to direct telemetry data to the suitable targets.<br>

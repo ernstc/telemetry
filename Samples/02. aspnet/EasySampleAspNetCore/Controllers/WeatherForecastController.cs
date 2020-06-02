@@ -36,13 +36,16 @@ namespace EasySampleAspNetCore.Controllers
                 //Trace.WriteLine("test");
 
                 var rng = new Random();
-                return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+                var ret = Enumerable.Range(1, 5).Select(index => new WeatherForecast
                 {
                     Date = DateTime.Now.AddDays(index),
                     TemperatureC = rng.Next(-20, 55),
                     Summary = Summaries[rng.Next(Summaries.Length)]
                 })
                 .ToArray();
+
+                sec.Result = ret;
+                return ret;
             }
         }
     }
