@@ -172,7 +172,7 @@ In this case the listener is configured to show the full application flow with m
 ## Configure Telemetry Listeners 
 __Common.Diagnostics__ component uses .Net Framework System.Diagnostics components to notify telemetry to its listeners.<br>
 This allows integrating Common.Diagnostics structured telemetry with traces from other components writing to System.Diagnostics.<br>
-Also, this allows standard System.Diagnostics listeners receive telemetry from Common.Diagnostics component.
+Also, this allows standard System.Diagnostics listeners receive telemetry from Common.Diagnostics component.<br>
 As an example, System.Diagnostics.DefaultTraceListener used to send traces to the Visual Studio output window and to the Azure Streaming Log console can receive Common.Diagnostics telemetry along with the traces sent by any other component within the process.
 
 With framework 4.6.2+ applications, Listeners can be configured as standard System.Diagnostics listeners on the application config file.<br>
