@@ -43,9 +43,9 @@ The following statements send telemetry information to the listeners on methods 
 4.	Configure the suitable listeners 
 the image below shows available diginsight packages with listeners to send data to log files, event log Application insight and WPF textboxes.
 
-![alt text](/diginsight/telemetry/blob/master/images/09.%20diginsight%20telemetry%20packages.jpg?raw=true "diginsight telemetry packages")
+![alt text](/images/09.%20diginsight%20telemetry%20packages.jpg "diginsight telemetry packages")
 <!-- /diginsight/telemetry/blob/master/images/09.%20diginsight%20telemetry%20packages.jpg?raw=true
-/images/09._diginsight_telemetry_packages.jpg
+
 width="800" height="700" 
 <img src="/diginsight/telemetry/blob/master/images/09. diginsight telemetry packages.jpg?raw=true" 
 	 alt="Starting telemetry in your application"
@@ -55,7 +55,7 @@ width="800" height="700"
 Server side, telemetry is rendered by default to the default System.Diagnostics.DefaultTraceListener.
 So, default telemetry is available to the streaming log, and visual studio output window as shown below.
 
-![alt text](/images/10._diginsight_telemetry_default_listener.jpg "Server side telemetry to the default System.Diagnostics.DefaultTraceListener").
+![alt text](/images/10.%20diginsight%20telemetry%20default%20listener.jpg "Server side telemetry to the default System.Diagnostics.DefaultTraceListener").
 <!-- 
 width="800" height="700" 
 <img src="/diginsight/telemetry/blob/master/images/10. diginsight telemetry default listener.jpg?raw=true" 
