@@ -1,4 +1,5 @@
-﻿using System;
+﻿#region using
+using System;
 using Common;
 using System.ComponentModel;
 using System.Globalization;
@@ -7,12 +8,13 @@ using System.Reflection;
 using System.Windows;
 //using System.Windows.Media;
 using System.Diagnostics;
-using System.Collections.Generic;
+using System.Collections.Generic; 
+#endregion
 
 namespace Common
 {
     #region Reference<T>
-    public class Reference<T> : INotifyPropertyChanged
+    internal class Reference<T> : INotifyPropertyChanged
     {
         #region .ctor
         public Reference() { }
@@ -42,10 +44,10 @@ namespace Common
     }
     #endregion
     #region Reference
-    public class Reference : Reference<object> { }
+    internal class Reference : Reference<object> { }
     #endregion
     #region ResultReference<T>
-    public class ResultReference<T> : INotifyPropertyChanged
+    internal class ResultReference<T> : INotifyPropertyChanged
     {
         #region .ctor
         public ResultReference() { }
@@ -82,11 +84,11 @@ namespace Common
     }
     #endregion
     #region ResultReference
-    public class ResultReference : ResultReference<object> { }
+    internal class ResultReference : ResultReference<object> { }
     #endregion
 
     #region WeakReference<T> 
-    public class ABCWeakReference<T> : WeakReference, INotifyPropertyChanged
+    internal class ABCWeakReference<T> : WeakReference, INotifyPropertyChanged
     {
         #region .ctor
         public ABCWeakReference(T target) : base(target) { }
@@ -114,7 +116,7 @@ namespace Common
     }
     #endregion
     #region WeakEventHandlerHandler<T>
-    public class WeakEventHandlerHandler<T>
+    internal class WeakEventHandlerHandler<T>
         where T : EventArgs
     {
         #region internal state
@@ -151,7 +153,7 @@ namespace Common
     #endregion
 
     #region Pair<L, R>
-    public class Pair<L, R>
+    internal class Pair<L, R>
     {
         public L Left { get; set; }
         public R Right { get; set; }
@@ -159,7 +161,7 @@ namespace Common
     #endregion
 
     #region SwitchOnDispose
-    public class SwitchOnDispose : IDisposable
+    internal class SwitchOnDispose : IDisposable
     {
         #region internal state
         private Reference<bool> _flag;
@@ -193,7 +195,7 @@ namespace Common
     }
     #endregion
 
-    public static class Convert2
+    internal static class Convert2
     {
         #region ToString(object)
         public static string ToString(object value)
@@ -266,7 +268,7 @@ namespace Common
     }
 
     [DebuggerNonUserCode]
-    public sealed class WeakEventHandler<TEventArgs> where TEventArgs : EventArgs
+    internal sealed class WeakEventHandler<TEventArgs> where TEventArgs : EventArgs
     {
         private readonly WeakReference _targetReference;
         private readonly MethodInfo _method;

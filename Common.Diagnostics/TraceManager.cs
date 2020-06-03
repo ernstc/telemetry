@@ -44,10 +44,10 @@ namespace Common
         internal static Assembly EntryAssembly { get; set; }
         public static string ProcessName = null;
         public static int ProcessId = -1;
-        public static Reference<bool> _lockListenersNotifications = new Reference<bool>(true);
-        public static Reference<bool> _isInitializing = new Reference<bool>(false);
-        public static Reference<bool> _isInitializeComplete = new Reference<bool>(false);
-        public static ConcurrentQueue<TraceEntry> _pendingEntries = new ConcurrentQueue<TraceEntry>();
+        internal static Reference<bool> _lockListenersNotifications = new Reference<bool>(true);
+        internal static Reference<bool> _isInitializing = new Reference<bool>(false);
+        internal static Reference<bool> _isInitializeComplete = new Reference<bool>(false);
+        internal static ConcurrentQueue<TraceEntry> _pendingEntries = new ConcurrentQueue<TraceEntry>();
 
         // Asynchronous flow ambient data.
         public static AsyncLocal<CodeSection> CurrentCodeSection { get; set; } = new AsyncLocal<CodeSection>();
