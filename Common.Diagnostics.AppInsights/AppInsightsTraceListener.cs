@@ -22,6 +22,9 @@ namespace Common
         public const string FILTER_SPLIT_REGEX = @"([-!]?[\""].+?[\""])|([-!]?\w+)";
         public const string CONFIGSETTING_FILTER = "Filter"; public const string CONFIGDEFAULT_FILTER = null;
         public const string CONFIGSETTING_CATEGORYFILTER = "CategoryFilter"; public const string CONFIGDEFAULT_CATEGORYFILTER = null;
+        public const string CONFIGSETTING_CATEGORYFILTERTRACKTRACE = "CategoryFilter.TrackTrace"; public const string CONFIGDEFAULT_CATEGORYFILTERTRACKTRACE = null;
+        public const string CONFIGSETTING_CATEGORYFILTERTRACKEVENT = "CategoryFilter.TrackEvent"; public const string CONFIGDEFAULT_CATEGORYFILTERTRACKEVENT = null;
+        public const string CONFIGSETTING_CATEGORYFILTERTRACKEXCEPTION = "CategoryFilter.TrackException"; public const string CONFIGDEFAULT_CATEGORYFILTERTRACKEXCEPTION = null;
         public const string CONFIGSETTING_FLUSHONWRITE = "FlushOnWrite"; public const bool CONFIGDEFAULT_FLUSHONWRITE = false;
         public const string CONFIGSETTING_MAXMESSAGELEVEL = "MaxMessageLevel"; public const int CONFIGDEFAULT_MAXMESSAGELEVEL = 3;
         public const string CONFIGSETTING_MAXMESSAGELEN = "MaxMessageLen"; public const int CONFIGDEFAULT_MAXMESSAGELEN = 256;
@@ -40,7 +43,7 @@ namespace Common
         #region private fields
         public bool _showNestedFlow, _flushOnWrite;
         public int _traceMessageFormatPrefixLen;
-        public string _filter, _categoryFilter;
+        public string _filter, _categoryFilter, _categoryFilterTrackTrace, _categoryFilterTrackEvent, _categoryFilterTrackException;
         public TraceEventType _allowedEventTypes = TraceEventType.Critical | TraceEventType.Error | TraceEventType.Warning | TraceEventType.Information | TraceEventType.Verbose | TraceEventType.Start | TraceEventType.Stop | TraceEventType.Suspend | TraceEventType.Resume | TraceEventType.Transfer;
         private int _telemetrythreadsleep;
         private string _defaultCategory;
@@ -145,6 +148,96 @@ namespace Common
             }
         }
         #endregion
+        #region CategoryFilterTrackTrace
+        Regex _categoryFilterTrackTraceRegex = new Regex(FILTER_SPLIT_REGEX, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline);
+        string[] _categoryFilterTrackTraceCanInclude;
+        string[] _categoryFilterTrackTraceMustInclude;
+        string[] _categoryFilterTrackTraceMustExclude;
+        string CategoryFilterTrackTrace
+        {
+            get { return _categoryFilterTrackTrace; }
+            set
+            {
+                _categoryFilterTrackTrace = value;
+                if (string.IsNullOrEmpty(_categoryFilterTrackTrace)) { _categoryFilterTrackTraceCanInclude = null; _categoryFilterTrackTraceMustInclude = null; _categoryFilterTrackTraceMustExclude = null; }
+                var categoryFilterTrackTraceCanInclude = new List<string>();
+                var categoryFilterTrackTraceMustInclude = new List<string>();
+                var categoryFilterTrackTraceMustExclude = new List<string>();
+                var items = _categoryFilterTrackTraceRegex.Split(_categoryFilterTrackTrace);
+                items.ForEach(i =>
+                {
+                    if (i.StartsWith("!")) { var substr = i.Substring(1); if (!string.IsNullOrEmpty(substr)) { if (substr.IndexOf(' ') >= 0) { substr = substr.Trim('"'); } categoryFilterTrackTraceMustInclude.Add(substr); } return; }
+                    if (i.StartsWith("-")) { var substr = i.Substring(1); if (!string.IsNullOrEmpty(substr)) { if (substr.IndexOf(' ') >= 0) { substr = substr.Trim('"'); } categoryFilterTrackTraceMustExclude.Add(substr); } return; }
+
+                    if (i.IndexOf(' ') >= 0) { i = i.Trim('"'); }
+                    if (!string.IsNullOrEmpty(i)) categoryFilterTrackTraceCanInclude.Add(i);
+                });
+                _categoryFilterTrackTraceCanInclude = categoryFilterTrackTraceCanInclude.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+                _categoryFilterTrackTraceMustInclude = categoryFilterTrackTraceMustInclude.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+                _categoryFilterTrackTraceMustExclude = categoryFilterTrackTraceMustExclude.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+            }
+        }
+        #endregion
+        #region CategoryFilterTrackEvent
+        Regex _categoryFilterTrackEventRegex = new Regex(FILTER_SPLIT_REGEX, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline);
+        string[] _categoryFilterTrackEventCanInclude;
+        string[] _categoryFilterTrackEventMustInclude;
+        string[] _categoryFilterTrackEventMustExclude;
+        string CategoryFilterTrackEvent
+        {
+            get { return _categoryFilterTrackEvent; }
+            set
+            {
+                _categoryFilterTrackEvent = value;
+                if (string.IsNullOrEmpty(_categoryFilterTrackEvent)) { _categoryFilterTrackEventCanInclude = null; _categoryFilterTrackEventMustInclude = null; _categoryFilterTrackEventMustExclude = null; }
+                var categoryFilterTrackEventCanInclude = new List<string>();
+                var categoryFilterTrackEventMustInclude = new List<string>();
+                var categoryFilterTrackEventMustExclude = new List<string>();
+                var items = _categoryFilterTrackEventRegex.Split(_categoryFilterTrackEvent);
+                items.ForEach(i =>
+                {
+                    if (i.StartsWith("!")) { var substr = i.Substring(1); if (!string.IsNullOrEmpty(substr)) { if (substr.IndexOf(' ') >= 0) { substr = substr.Trim('"'); } categoryFilterTrackEventMustInclude.Add(substr); } return; }
+                    if (i.StartsWith("-")) { var substr = i.Substring(1); if (!string.IsNullOrEmpty(substr)) { if (substr.IndexOf(' ') >= 0) { substr = substr.Trim('"'); } categoryFilterTrackEventMustExclude.Add(substr); } return; }
+
+                    if (i.IndexOf(' ') >= 0) { i = i.Trim('"'); }
+                    if (!string.IsNullOrEmpty(i)) categoryFilterTrackEventCanInclude.Add(i);
+                });
+                _categoryFilterTrackEventCanInclude = categoryFilterTrackEventCanInclude.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+                _categoryFilterTrackEventMustInclude = categoryFilterTrackEventMustInclude.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+                _categoryFilterTrackEventMustExclude = categoryFilterTrackEventMustExclude.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+            }
+        }
+        #endregion
+        #region CategoryFilterTrackException
+        Regex _categoryFilterTrackExceptionRegex = new Regex(FILTER_SPLIT_REGEX, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline);
+        string[] _categoryFilterTrackExceptionCanInclude;
+        string[] _categoryFilterTrackExceptionMustInclude;
+        string[] _categoryFilterTrackExceptionMustExclude;
+        string CategoryFilterTrackException
+        {
+            get { return _categoryFilterTrackException; }
+            set
+            {
+                _categoryFilterTrackException = value;
+                if (string.IsNullOrEmpty(_categoryFilterTrackException)) { _categoryFilterTrackExceptionCanInclude = null; _categoryFilterTrackExceptionMustInclude = null; _categoryFilterTrackExceptionMustExclude = null; }
+                var categoryFilterTrackExceptionCanInclude = new List<string>();
+                var categoryFilterTrackExceptionMustInclude = new List<string>();
+                var categoryFilterTrackExceptionMustExclude = new List<string>();
+                var items = _categoryFilterTrackExceptionRegex.Split(_categoryFilterTrackException);
+                items.ForEach(i =>
+                {
+                    if (i.StartsWith("!")) { var substr = i.Substring(1); if (!string.IsNullOrEmpty(substr)) { if (substr.IndexOf(' ') >= 0) { substr = substr.Trim('"'); } categoryFilterTrackExceptionMustInclude.Add(substr); } return; }
+                    if (i.StartsWith("-")) { var substr = i.Substring(1); if (!string.IsNullOrEmpty(substr)) { if (substr.IndexOf(' ') >= 0) { substr = substr.Trim('"'); } categoryFilterTrackExceptionMustExclude.Add(substr); } return; }
+
+                    if (i.IndexOf(' ') >= 0) { i = i.Trim('"'); }
+                    if (!string.IsNullOrEmpty(i)) categoryFilterTrackExceptionCanInclude.Add(i);
+                });
+                _categoryFilterTrackExceptionCanInclude = categoryFilterTrackExceptionCanInclude.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+                _categoryFilterTrackExceptionMustInclude = categoryFilterTrackExceptionMustInclude.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+                _categoryFilterTrackExceptionMustExclude = categoryFilterTrackExceptionMustExclude.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+            }
+        }
+        #endregion
 
         private void Init()
         {
@@ -154,6 +247,12 @@ namespace Common
                 if (!string.IsNullOrEmpty(filter)) { ((ISupportFilters)this).Filter = filter; }
                 var categoryFilter = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, string>(CONFIGSETTING_CATEGORYFILTER, CONFIGDEFAULT_CATEGORYFILTER);
                 if (!string.IsNullOrEmpty(categoryFilter)) { this.CategoryFilter = categoryFilter; }
+                var categoryFilterTrackTrace = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, string>(CONFIGSETTING_CATEGORYFILTERTRACKTRACE, CONFIGDEFAULT_CATEGORYFILTERTRACKTRACE);
+                if (!string.IsNullOrEmpty(categoryFilterTrackTrace)) { this.CategoryFilterTrackTrace = categoryFilterTrackTrace; }
+                var categoryFilterTrackEvent = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, string>(CONFIGSETTING_CATEGORYFILTERTRACKEVENT, CONFIGDEFAULT_CATEGORYFILTERTRACKEVENT);
+                if (!string.IsNullOrEmpty(categoryFilterTrackEvent)) { this.CategoryFilterTrackEvent = categoryFilterTrackEvent; }
+                var categoryFilterTrackException = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, string>(CONFIGSETTING_CATEGORYFILTERTRACKEXCEPTION, CONFIGDEFAULT_CATEGORYFILTERTRACKEXCEPTION);
+                if (!string.IsNullOrEmpty(categoryFilterTrackException)) { this.CategoryFilterTrackException = categoryFilterTrackException; }
 
                 _flushOnWrite = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, bool>(CONFIGSETTING_FLUSHONWRITE, CONFIGDEFAULT_FLUSHONWRITE);
                 _telemetrythreadsleep = ConfigurationHelper.GetClassSetting<AppInsightsTraceListener, int>(CONFIGSETTING_TELEMETRYTHREADSLEEP, CONFIGDEFAULT_TELEMETRYTHREADSLEEP);
@@ -280,26 +379,62 @@ namespace Common
 
                 if (_trackEventEnabled)
                 {
-                    var eventName = entry.TraceEventType.ToString();
-                    _telemetry.TrackEvent(eventName, properties, null); // this.Metrics as IDictionary<string, double>
-                    if (_flushOnWrite) { _telemetry.Flush(); }
+                    // check the category FilterTrackEvent
+                    bool isEnabled = true;
+                    if (_categoryFilterTrackEventMustInclude != null && _categoryFilterTrackEventMustInclude.Length > 0 && _categoryFilterTrackEventMustInclude.Any(categoryFilterTrackEventMustInclude => category == null || category.IndexOf(categoryFilterTrackEventMustInclude, StringComparison.CurrentCultureIgnoreCase) < 0)) { isEnabled = false; }
+                    if (_categoryFilterTrackEventMustExclude != null && _categoryFilterTrackEventMustExclude.Length > 0 && _categoryFilterTrackEventMustExclude.Any(categoryFilterTrackEventMustExclude => category != null && category.IndexOf(categoryFilterTrackEventMustExclude, StringComparison.CurrentCultureIgnoreCase) >= 0)) { isEnabled = false; }
+                    if (_categoryFilterTrackEventCanInclude != null && _categoryFilterTrackEventCanInclude.Length > 0)
+                    {
+                        if (_categoryFilterTrackEventCanInclude.All(categoryFilterTrackEventCanInclude => category == null || category.IndexOf(categoryFilterTrackEventCanInclude, StringComparison.CurrentCultureIgnoreCase) < 0)) { isEnabled = false; }
+                    }
+
+                    if (isEnabled)
+                    {
+                        var eventName = entry.TraceEventType.ToString();
+                        _telemetry.TrackEvent(eventName, properties, null); // this.Metrics as IDictionary<string, double>
+                        if (_flushOnWrite) { _telemetry.Flush(); }
+                    }
                 }
                 if (_trackExceptionEnabled && entry.TraceEventType == TraceEventType.Critical)
                 {
-                    _telemetry.TrackException(entry.Exception, properties, null);
-                    if (_flushOnWrite) { _telemetry.Flush(); }
+                    // check the category FilterTrackException
+                    bool isEnabled = true;
+                    if (_categoryFilterTrackExceptionMustInclude != null && _categoryFilterTrackExceptionMustInclude.Length > 0 && _categoryFilterTrackExceptionMustInclude.Any(categoryFilterTrackExceptionMustInclude => category == null || category.IndexOf(categoryFilterTrackExceptionMustInclude, StringComparison.CurrentCultureIgnoreCase) < 0)) { isEnabled = false; }
+                    if (_categoryFilterTrackExceptionMustExclude != null && _categoryFilterTrackExceptionMustExclude.Length > 0 && _categoryFilterTrackExceptionMustExclude.Any(categoryFilterTrackExceptionMustExclude => category != null && category.IndexOf(categoryFilterTrackExceptionMustExclude, StringComparison.CurrentCultureIgnoreCase) >= 0)) { isEnabled = false; }
+                    if (_categoryFilterTrackExceptionCanInclude != null && _categoryFilterTrackExceptionCanInclude.Length > 0)
+                    {
+                        if (_categoryFilterTrackExceptionCanInclude.All(categoryFilterTrackExceptionCanInclude => category == null || category.IndexOf(categoryFilterTrackExceptionCanInclude, StringComparison.CurrentCultureIgnoreCase) < 0)) { isEnabled = false; }
+                    }
+
+                    if (isEnabled)
+                    {
+                        _telemetry.TrackException(entry.Exception, properties, null);
+                        if (_flushOnWrite) { _telemetry.Flush(); }
+                    }
                 }
                 if (_trackTraceEnabled)
                 {
-                    var traceSurrogate = GetTraceSurrogate(entry);
-                    var entryJson = SerializationHelper.SerializeJson(traceSurrogate);
-                    var securityLevel = SeverityLevel.Verbose;
-                    if (entry.TraceEventType.HasFlag(TraceEventType.Critical)) { securityLevel = SeverityLevel.Critical; }
-                    else if (entry.TraceEventType.HasFlag(TraceEventType.Error)) { securityLevel = SeverityLevel.Error; }
-                    else if (entry.TraceEventType.HasFlag(TraceEventType.Warning)) { securityLevel = SeverityLevel.Warning; }
-                    else if (entry.TraceEventType.HasFlag(TraceEventType.Information)) { securityLevel = SeverityLevel.Information; }
-                    _telemetry.TrackTrace(entryJson, securityLevel, properties);
-                    if (_flushOnWrite) { _telemetry.Flush(); }
+                    // check the category FilterTrackTrace
+                    bool isEnabled = true;
+                    if (_categoryFilterTrackTraceMustInclude != null && _categoryFilterTrackTraceMustInclude.Length > 0 && _categoryFilterTrackTraceMustInclude.Any(categoryFilterTrackTraceMustInclude => category == null || category.IndexOf(categoryFilterTrackTraceMustInclude, StringComparison.CurrentCultureIgnoreCase) < 0)) { isEnabled = false; }
+                    if (_categoryFilterTrackTraceMustExclude != null && _categoryFilterTrackTraceMustExclude.Length > 0 && _categoryFilterTrackTraceMustExclude.Any(categoryFilterTrackTraceMustExclude => category != null && category.IndexOf(categoryFilterTrackTraceMustExclude, StringComparison.CurrentCultureIgnoreCase) >= 0)) { isEnabled = false; }
+                    if (_categoryFilterTrackTraceCanInclude != null && _categoryFilterTrackTraceCanInclude.Length > 0)
+                    {
+                        if (_categoryFilterTrackTraceCanInclude.All(categoryFilterTrackTraceCanInclude => category == null || category.IndexOf(categoryFilterTrackTraceCanInclude, StringComparison.CurrentCultureIgnoreCase) < 0)) { isEnabled = false; }
+                    }
+
+                    if (isEnabled)
+                    {
+                        var traceSurrogate = GetTraceSurrogate(entry);
+                        var entryJson = SerializationHelper.SerializeJson(traceSurrogate);
+                        var securityLevel = SeverityLevel.Verbose;
+                        if (entry.TraceEventType.HasFlag(TraceEventType.Critical)) { securityLevel = SeverityLevel.Critical; }
+                        else if (entry.TraceEventType.HasFlag(TraceEventType.Error)) { securityLevel = SeverityLevel.Error; }
+                        else if (entry.TraceEventType.HasFlag(TraceEventType.Warning)) { securityLevel = SeverityLevel.Warning; }
+                        else if (entry.TraceEventType.HasFlag(TraceEventType.Information)) { securityLevel = SeverityLevel.Information; }
+                        _telemetry.TrackTrace(entryJson, securityLevel, properties);
+                        if (_flushOnWrite) { _telemetry.Flush(); }
+                    }
                 }
             });
         }
@@ -360,7 +495,7 @@ namespace Common
                 properties.Add("Entry.Category", entry.Category);
                 properties.Add("Entry.ElapsedMilliseconds", entry.ElapsedMilliseconds.ToString());
                 //properties.Add("Entry.Exception", entry.Exception?.ToString());
-                //properties.Add("Entry.Message", entry.Message);
+                properties.Add("Entry.Message", entry.Message);
                 properties.Add("Entry.Source", entry.Source);
                 properties.Add("Entry.SourceLevel", entry.SourceLevel.ToString());
                 properties.Add("Entry.Thread", entry.Thread?.ToString());
@@ -386,26 +521,61 @@ namespace Common
 
                 if (_trackEventEnabled)
                 {
-                    var eventName = entry.TraceEventType.ToString();
-                    _telemetry.TrackEvent(eventName, properties, null); // this.Metrics as IDictionary<string, double>
-                    if (_flushOnWrite) { _telemetry.Flush(); }
+                    bool isEnabled = true;
+                    if (_categoryFilterTrackEventMustInclude != null && _categoryFilterTrackEventMustInclude.Length > 0 && _categoryFilterTrackEventMustInclude.Any(categoryFilterTrackEventMustInclude => category == null || category.IndexOf(categoryFilterTrackEventMustInclude, StringComparison.CurrentCultureIgnoreCase) < 0)) { isEnabled = false; }
+                    if (_categoryFilterTrackEventMustExclude != null && _categoryFilterTrackEventMustExclude.Length > 0 && _categoryFilterTrackEventMustExclude.Any(categoryFilterTrackEventMustExclude => category != null && category.IndexOf(categoryFilterTrackEventMustExclude, StringComparison.CurrentCultureIgnoreCase) >= 0)) { isEnabled = false; }
+                    if (_categoryFilterTrackEventCanInclude != null && _categoryFilterTrackEventCanInclude.Length > 0)
+                    {
+                        if (_categoryFilterTrackEventCanInclude.All(categoryFilterTrackEventCanInclude => category == null || category.IndexOf(categoryFilterTrackEventCanInclude, StringComparison.CurrentCultureIgnoreCase) < 0)) { isEnabled = false; }
+                    }
+
+                    if (isEnabled)
+                    {
+                        var eventName = entry.TraceEventType.ToString();
+                        _telemetry.TrackEvent(eventName, properties, null); // this.Metrics as IDictionary<string, double>
+                        if (_flushOnWrite) { _telemetry.Flush(); }
+                    }
                 }
                 if (_trackExceptionEnabled && entry.TraceEventType == TraceEventType.Critical)
                 {
-                    _telemetry.TrackException(entry.Exception, properties, null);
-                    if (_flushOnWrite) { _telemetry.Flush(); }
+                    // check the category FilterTrackException
+                    bool isEnabled = true;
+                    if (_categoryFilterTrackExceptionMustInclude != null && _categoryFilterTrackExceptionMustInclude.Length > 0 && _categoryFilterTrackExceptionMustInclude.Any(categoryFilterTrackExceptionMustInclude => category == null || category.IndexOf(categoryFilterTrackExceptionMustInclude, StringComparison.CurrentCultureIgnoreCase) < 0)) { isEnabled = false; }
+                    if (_categoryFilterTrackExceptionMustExclude != null && _categoryFilterTrackExceptionMustExclude.Length > 0 && _categoryFilterTrackExceptionMustExclude.Any(categoryFilterTrackExceptionMustExclude => category != null && category.IndexOf(categoryFilterTrackExceptionMustExclude, StringComparison.CurrentCultureIgnoreCase) >= 0)) { isEnabled = false; }
+                    if (_categoryFilterTrackExceptionCanInclude != null && _categoryFilterTrackExceptionCanInclude.Length > 0)
+                    {
+                        if (_categoryFilterTrackExceptionCanInclude.All(categoryFilterTrackExceptionCanInclude => category == null || category.IndexOf(categoryFilterTrackExceptionCanInclude, StringComparison.CurrentCultureIgnoreCase) < 0)) { isEnabled = false; }
+                    }
+
+                    if (isEnabled)
+                    {
+                        _telemetry.TrackException(entry.Exception, properties, null);
+                        if (_flushOnWrite) { _telemetry.Flush(); }
+                    }
                 }
                 if (_trackTraceEnabled)
                 {
-                    var traceSurrogate = GetTraceSurrogate(entry);
-                    var entryJson = SerializationHelper.SerializeJson(traceSurrogate);
-                    var securityLevel = SeverityLevel.Verbose;
-                    if (entry.TraceEventType.HasFlag(TraceEventType.Critical)) { securityLevel = SeverityLevel.Critical; }
-                    else if (entry.TraceEventType.HasFlag(TraceEventType.Error)) { securityLevel = SeverityLevel.Error; }
-                    else if (entry.TraceEventType.HasFlag(TraceEventType.Warning)) { securityLevel = SeverityLevel.Warning; }
-                    else if (entry.TraceEventType.HasFlag(TraceEventType.Information)) { securityLevel = SeverityLevel.Information; }
-                    _telemetry.TrackTrace(entryJson, securityLevel, properties);
-                    if (_flushOnWrite) { _telemetry.Flush(); }
+                    // check the category FilterTrackTrace
+                    bool isEnabled = true;
+                    if (_categoryFilterTrackTraceMustInclude != null && _categoryFilterTrackTraceMustInclude.Length > 0 && _categoryFilterTrackTraceMustInclude.Any(categoryFilterTrackTraceMustInclude => category == null || category.IndexOf(categoryFilterTrackTraceMustInclude, StringComparison.CurrentCultureIgnoreCase) < 0)) { isEnabled = false; }
+                    if (_categoryFilterTrackTraceMustExclude != null && _categoryFilterTrackTraceMustExclude.Length > 0 && _categoryFilterTrackTraceMustExclude.Any(categoryFilterTrackTraceMustExclude => category != null && category.IndexOf(categoryFilterTrackTraceMustExclude, StringComparison.CurrentCultureIgnoreCase) >= 0)) { isEnabled = false; }
+                    if (_categoryFilterTrackTraceCanInclude != null && _categoryFilterTrackTraceCanInclude.Length > 0)
+                    {
+                        if (_categoryFilterTrackTraceCanInclude.All(categoryFilterTrackTraceCanInclude => category == null || category.IndexOf(categoryFilterTrackTraceCanInclude, StringComparison.CurrentCultureIgnoreCase) < 0)) { isEnabled = false; }
+                    }
+
+                    if (isEnabled)
+                    {
+                        var traceSurrogate = GetTraceSurrogate(entry);
+                        var entryJson = SerializationHelper.SerializeJson(traceSurrogate);
+                        var securityLevel = SeverityLevel.Verbose;
+                        if (entry.TraceEventType.HasFlag(TraceEventType.Critical)) { securityLevel = SeverityLevel.Critical; }
+                        else if (entry.TraceEventType.HasFlag(TraceEventType.Error)) { securityLevel = SeverityLevel.Error; }
+                        else if (entry.TraceEventType.HasFlag(TraceEventType.Warning)) { securityLevel = SeverityLevel.Warning; }
+                        else if (entry.TraceEventType.HasFlag(TraceEventType.Information)) { securityLevel = SeverityLevel.Information; }
+                        _telemetry.TrackTrace(entryJson, securityLevel, properties);
+                        if (_flushOnWrite) { _telemetry.Flush(); }
+                    }
                 }
             });
         }

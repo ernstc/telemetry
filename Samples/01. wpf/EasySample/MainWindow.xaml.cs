@@ -36,7 +36,7 @@ namespace EasySample
         {
             using (var sec = this.GetCodeSection(new { sender = sender.GetLogString(), e = e.GetLogString() }))
             {
-                sec.Debug("this is a debug trace", "User");
+                sec.Debug("this is a debug trace", "User", properties: new Dictionary<string, object>() { { "", "" } } );
                 sec.Information("this is a Information trace", "Raw");
                 sec.Warning("this is a Warning trace", "User.Report");
                 sec.Error("this is a error trace", "Resource");
@@ -53,9 +53,12 @@ namespace EasySample
                         { "User", 123 },
                         { "Tags", new[] { "sample", "user", "advanced" } }
                     });
+                    
+                    sec.Information("this is a Information trace", "event");
                     sec.Information("this is a Information trace", "Raw");
                     sec.Warning("this is a Warning trace", "User.Report");
                     sec.Error("this is a error trace", "Resource");
+
 
                     throw new NullReferenceException();
                 }
