@@ -20,7 +20,7 @@ Steps to use Common.Diagnostics:
 ```c#
 	- using (var sec = TraceManager.GetCodeSection(T)) // defines a code section within a static method
 	- using (var sec = this.GetCodeSection()) // defines a code section within an instance method
-	- using (var sec = TraceManager.GetCodeSection(T)) // defines a code section with a custom name within a static method
+	- using (var sec = TraceManager.GetNamedSection(T)) // defines a code section with a custom name within a static method
 	- using (var sec = this.GetNamedSection("<sectionName>")) // defines a code section with a custom name within an instance method
 ```
 3.	Add trace statements to your code to send custom data to the listeners
