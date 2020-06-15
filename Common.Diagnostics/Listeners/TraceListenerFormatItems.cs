@@ -66,7 +66,7 @@ namespace Common
         public string _filter, _categoryFilter;
         public string _traceDeltaDefault;
         public TraceEventType _allowedEventTypes = TraceEventType.Critical | TraceEventType.Error | TraceEventType.Warning | TraceEventType.Information | TraceEventType.Verbose | TraceEventType.Start | TraceEventType.Stop | TraceEventType.Suspend | TraceEventType.Resume | TraceEventType.Transfer;
-        private readonly int _timeout = 10;
+        //private readonly int _timeout = 10;
         TraceEntry lastWrite = default(TraceEntry);
         //private ILog _log;
         //static ILoggerRepository _logRepository = null;
