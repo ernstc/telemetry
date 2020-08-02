@@ -13,6 +13,8 @@
 	<PackageIcon>EkipConnect.png</PackageIcon>
 	<Authors>diginsight</Authors>
 	<Description>provides a System.Diagnostics listener that sends Common.Diagnostics telemetry to AppInsights</Description>
+	<SignAssembly>true</SignAssembly>
+	<AssemblyOriginatorKeyFile>diginsight.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>

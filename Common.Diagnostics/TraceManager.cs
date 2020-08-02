@@ -105,6 +105,7 @@ namespace Common
 
                             jsonFile = currentDirectory == appdomainFolder ? $"{jsonFileName}.json" : Path.Combine(appdomainFolder, $"{jsonFileName}.json");
                             var builder = new ConfigurationBuilder()
+                                          
                                           .AddJsonFile(jsonFile, true, true)
                                           //.AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true)
                                           .AddInMemoryCollection();

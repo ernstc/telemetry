@@ -1,4 +1,6 @@
-﻿using System;
+﻿#region using
+using Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,18 +13,20 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Windows.Shapes; 
+#endregion
 
 namespace EasySample462
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
+    /// <summary>Interaction logic for MainWindow.xaml</summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
-        { 
-            InitializeComponent();
+        {
+            using (var sec = this.GetCodeSection())
+            { 
+                InitializeComponent();
+            }
         }
     }
 }
