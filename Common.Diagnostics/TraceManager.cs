@@ -105,7 +105,7 @@ namespace Common
 
                             jsonFile = currentDirectory == appdomainFolder ? $"{jsonFileName}.json" : Path.Combine(appdomainFolder, $"{jsonFileName}.json");
                             var builder = new ConfigurationBuilder()
-                                          
+
                                           .AddJsonFile(jsonFile, true, true)
                                           //.AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true)
                                           .AddInMemoryCollection();
@@ -349,6 +349,13 @@ namespace Common
         private static void ApplyListenerConfig(ListenerConfig listenerConfig, TraceListenerCollection listeners)
         {
             var action = listenerConfig.action ?? "add";
+            var listenerType = listenerConfig.type;
+            if (listenerConfig.innerListener != null)
+            {
+                for (var innerListener = listenerConfig.innerListener; innerListener != null; innerListener = innerListener.innerListener) { listenerType = $"{listenerType}/{innerListener.type}"; }
+            }
+            TraceManager.Information($"Listener action:'{action}', type:'{listenerType}'");
+
             var listener = default(TraceListener);
             listener = GetListenerFromConfig(listenerConfig, listeners);
             if (action.ToLower() != "remove" && listener != null)
