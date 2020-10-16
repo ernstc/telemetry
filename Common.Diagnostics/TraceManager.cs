@@ -153,7 +153,9 @@ namespace Common
                     }
                     catch (Exception ex)
                     {
-                        sec.Exception(ex);
+                        var message = $"Exception '{ex.GetType().Name}' occurred: {ex.Message}\r\nAdditional Information:\r\n{ex}";
+                        sec.Exception(new InvalidDataException(message, ex));
+                        Trace.WriteLine(message);
                     }
                 }
             }

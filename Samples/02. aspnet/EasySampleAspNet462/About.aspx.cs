@@ -12,6 +12,8 @@ namespace EasySampleAspNet462
     {
         protected void Page_Load(object sender, EventArgs e)
         {
+            //AssemblyResolver.ResolveToAssemblyReferences(typeof(AddAIPUserPermissions).Assembly);
+            
             //TraceManager.Init(System.Diagnostics.SourceLevels.All, null);
             using (var sec = this.GetCodeSection()) {
             
