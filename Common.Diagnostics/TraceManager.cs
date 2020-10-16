@@ -111,7 +111,7 @@ namespace Common
                                           .AddInMemoryCollection();
                             builder.AddEnvironmentVariables();
                             configuration = builder.Build();
-                        }
+                        } 
 
                         TraceManager.Configuration = configuration;
                         ConfigurationHelper.Init(configuration);
