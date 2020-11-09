@@ -31,7 +31,8 @@ namespace Common
     {
         public static IProvideLogString LogStringProvider;
 
-        public static void RegisterLogstringProvider(IProvideLogString logStringProvider) {
+        public static void RegisterLogstringProvider(IProvideLogString logStringProvider)
+        {
             LogStringProvider = logStringProvider;
         }
 
@@ -45,49 +46,56 @@ namespace Common
         }
         public static string GetLogString<T>(this T pthis)
         {
-            if (pthis == null) { return "null"; }
-            
-            switch (pthis)
+            try
             {
-                case KeyValuePair<string, string> o: return o.ToLogStringInternal(); 
-                case Type o: return o.ToLogStringInternal(); 
-                case Exception o: return o.ToLogStringInternal(); 
-                case ISupportLogString o: return o.ToLogString(); 
-                case byte[] o: return o.ToLogStringInternal(); 
-                case short[] o: return o.ToLogStringInternal(); 
-                case int[] o: return o.ToLogStringInternal(); 
-                case IDictionary o: return o.ToLogStringInternal(); 
-                case ICollection o: return o.ToLogStringInternal();
-                default: break;
-            }
+                if (pthis == null) { return "null"; }
 
-            var type = pthis.GetType();
-            if (type.IsPrimitive || pthis is string || type.IsEnum)
-            {
-                if (pthis is byte) { return ToLogStringInternal(Convert.ToByte(pthis)); }
-                return pthis.ToString();
-            }
-            if (type.IsAnonymousType())
-            {
-                var props = type.GetProperties();
-                var propsString = string.Join(",", props.ToList().Select(p => $"{p.Name}:{p.GetValue(pthis).GetLogString()}").ToArray());
-                var typeString = $"{{{propsString}}}";
-                return propsString;
-            }
+                switch (pthis)
+                {
+                    case KeyValuePair<string, string> o: return o.ToLogStringInternal();
+                    case Type o: return o.ToLogStringInternal();
+                    case Exception o: return o.ToLogStringInternal();
+                    case ISupportLogString o: return o.ToLogString();
+                    case byte[] o: return o.ToLogStringInternal();
+                    case short[] o: return o.ToLogStringInternal();
+                    case int[] o: return o.ToLogStringInternal();
+                    case IDictionary o: return o.ToLogStringInternal();
+                    case ICollection o: return o.ToLogStringInternal();
+                    default: break;
+                }
 
-            switch (pthis) {
-                case CultureInfo o: return o.ToLogStringInternal();
-                case Version o: return o.ToLogStringInternal();
-                case IEnumerable o: return o.ToLogStringInternal();
-            }
+                var type = pthis.GetType();
+                if (type.IsPrimitive || pthis is string || type.IsEnum)
+                {
+                    if (pthis is byte) { return ToLogStringInternal(Convert.ToByte(pthis)); }
+                    return pthis.ToString();
+                }
+                if (type.IsAnonymousType())
+                {
+                    var props = type.GetProperties();
+                    var propsString = string.Join(",", props.ToList().Select(p => $"{p.Name}:{p.GetValue(pthis).GetLogString()}").ToArray());
+                    var typeString = $"{{{propsString}}}";
+                    return propsString;
+                }
 
-            if (LogStringProvider != null) {
-                var arg = new HandledEventArgs();
-                var s = LogStringProvider.ToLogString(pthis, arg);
-                if (!string.IsNullOrEmpty(s) || arg.Handled) { return s; }
-            }
+                switch (pthis)
+                {
+                    case CultureInfo o: return o.ToLogStringInternal();
+                    case Version o: return o.ToLogStringInternal();
+                    case IEnumerable o: return o.ToLogStringInternal();
+                }
 
-            return pthis.GetType().ToLogStringInternal();
+                if (LogStringProvider != null)
+                {
+                    var arg = new HandledEventArgs();
+                    var s = LogStringProvider.ToLogString(pthis, arg);
+                    if (!string.IsNullOrEmpty(s) || arg.Handled) { return s; }
+                }
+
+                return pthis.GetType().ToLogStringInternal();
+            }
+            catch (Exception ex) { }
+            return null;
         }
         public static string ToLogStringInternal(this KeyValuePair<string, string> pthis)
         {
@@ -120,7 +128,7 @@ namespace Common
             }).ToList();
             if (dicContent.Length > 0) { dicContent.Length--; }
             if (isLenOut || isTimeOut) { dicContent.Append($"..."); }
-            
+
             var logString = $"{GetLogString(dic.GetType())}(count {dic.Count}){{{(dicContent.Length > 0 ? dicContent.ToString() : null)}}}";
             return logString;
         }
