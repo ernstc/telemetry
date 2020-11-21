@@ -10,7 +10,7 @@ So, telemetry data is sent to the listeners without being read, serialized or pr
 This allows to every single listener *to access, process and display only the information that is required for its specific purpose*.<br>
 Also, this allows saving processing cost of data that is not rendered (eg. debug message strings are not even created when debug telemetry is disabled)<br>
 <br>
-Common.Diagnostics component is supported on .Net Framework 4.6.2+ and .Net Core 3.0+.
+Common.Diagnostics component is supported on .Net Framework 4.6.2+, .Net Core 3.1+ and .Net 5.0+.
 
 # GETTING STARTED
 <!-- span style="background-color: #FFFF99">TraceManager.Debug</span -->
