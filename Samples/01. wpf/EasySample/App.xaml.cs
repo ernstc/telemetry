@@ -39,7 +39,7 @@ namespace EasySample
                 {
                     sec.Exception(ex);
                 }
-            }
+            } 
         }
 
         public App()
