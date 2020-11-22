@@ -44,10 +44,11 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release' #Debug,
   stageVariables: 'version'
-  agent.preferPowerShellOnContainers: true
 
 stages:
 - stage: Build_Assemblies
+  variables:
+      agent.preferPowerShellOnContainers: true
   jobs:
   - job: Increment_Version
     timeoutInMinutes: 60
