@@ -53,6 +53,8 @@ stages:
   - job: Increment_Version
     timeoutInMinutes: 60
     cancelTimeoutInMinutes: 5
+    variables:
+        agent.preferPowerShellOnContainers: true
     workspace: 
       clean: outputs
     steps:
