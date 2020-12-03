@@ -144,6 +144,12 @@ stages:
     workspace: 
       clean: outputs
     steps:
+    - checkout: self
+      persistCredentials: true
+      clean: true
+      name: checkout
+      displayName: Checkout Self
+
     - powershell: |
         Write-Host "version: '$(version)'"
       name: readVersion2
@@ -158,9 +164,6 @@ stages:
       enabled: true
 
     - powershell: |
-        Write-Host "version: '$(version)'"
-        Write-Host "psIncrementAssemblyVersion.version '$(psIncrementAssemblyVersion.version)'"
-        $version = $(psIncrementAssemblyVersion.version)
         Write-Host "version: '$(version)'"
         ".\scripts\02.1. Pull.ps1"
       name: gitPull
