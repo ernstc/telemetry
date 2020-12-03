@@ -157,6 +157,16 @@ stages:
       displayName: DumpVariables
       enabled: true
 
+    - powershell: |
+        Write-Host "version: '$(version)'"
+        Write-Host "psIncrementAssemblyVersion.version '$(psIncrementAssemblyVersion.version)'"
+        $version = $(psIncrementAssemblyVersion.version)
+        Write-Host "version: '$(version)'"
+        ".\scripts\02.1. Pull.ps1"
+      name: gitPull
+      displayName: Pull sources with new version
+      continueOnError: true
+
     - task: NuGetToolInstaller@1
       displayName: Install NuGet tool
     - task: NuGetCommand@2
