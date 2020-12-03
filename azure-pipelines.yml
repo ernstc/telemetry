@@ -85,7 +85,7 @@ stages:
         $version = $(psIncrementAssemblyVersion.version)
         Write-Host "version: '$(version)'"
         ".\scripts\02.1. Pull.ps1"
-      name: readVersion
+      name: gitPull
       displayName: Pull sources with new version
       continueOnError: true
 
