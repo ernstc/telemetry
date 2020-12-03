@@ -84,6 +84,16 @@ stages:
         Write-Host "psIncrementAssemblyVersion.version '$(psIncrementAssemblyVersion.version)'"
         $version = $(psIncrementAssemblyVersion.version)
         Write-Host "version: '$(version)'"
+        ".\scripts\02.1. Pull.ps1"
+      name: readVersion
+      displayName: Pull sources with new version
+      continueOnError: true
+
+    - powershell: |
+        Write-Host "version: '$(version)'"
+        Write-Host "psIncrementAssemblyVersion.version '$(psIncrementAssemblyVersion.version)'"
+        $version = $(psIncrementAssemblyVersion.version)
+        Write-Host "version: '$(version)'"
         ".\scripts\00. DumpVariables.ps1"
       name: readVersion
       displayName: Read Versions
@@ -117,6 +127,7 @@ stages:
       name: readVersion1
       displayName: Read Versions
       continueOnError: true
+
 
 
   - job: Build_Assemblies
