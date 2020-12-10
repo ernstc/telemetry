@@ -13,7 +13,7 @@ using System.Windows;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using System.IO;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 #endregion
 
 namespace Common

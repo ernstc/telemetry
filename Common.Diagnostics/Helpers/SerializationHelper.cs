@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using Common;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -16,6 +14,19 @@ namespace Common
 {
     internal class SerializationHelper
     {
+        static readonly private JsonSerializerOptions defaultOptions;
+        static SerializationHelper()
+        {
+            defaultOptions = new JsonSerializerOptions
+            {
+                IgnoreReadOnlyProperties = true,
+                IgnoreNullValues = true,
+                ReadCommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true,
+                WriteIndented = true
+            };
+        }
+
         #region SerializeJson<T>(T obj)
         /// <summary>Serializza l'oggetto in una stringa xml (DataContractSerializer)</summary>
         /// <typeparam name='T'>Tipo dell'oggetto da serializzare</typeparam>
@@ -23,22 +34,7 @@ namespace Common
         /// <returns>String contenente l'xml con l'oggetto serializzato</returns>
         public static string SerializeJson<T>(T obj)
         {
-            var options = new JsonSerializerOptions
-            {
-                IgnoreReadOnlyProperties = true,
-                IgnoreNullValues = true,
-                //ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                //DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
-                //Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic),
-                //Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                //PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-                AllowTrailingCommas = true,
-                WriteIndented = true
-            };
-            //options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
-
-            var jsonString = System.Text.Json.JsonSerializer.Serialize(obj, options); 
+            var jsonString = System.Text.Json.JsonSerializer.Serialize(obj, defaultOptions); 
             return jsonString;
         }
         #endregion
@@ -113,30 +109,7 @@ namespace Common
         #region SerializeJson<T>(T obj)
         public static string SerializeJsonObject(object obj)
         {
-            JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
-            {
-                Formatting = Formatting.Indented,
-                TypeNameHandling = TypeNameHandling.Auto,
-                MissingMemberHandling = MissingMemberHandling.Ignore,
-                PreserveReferencesHandling = PreserveReferencesHandling.All,
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                ConstructorHandling = ConstructorHandling.Default,
-                NullValueHandling = NullValueHandling.Ignore
-            };
-            return JsonConvert.SerializeObject(obj, jsonSerializerSettings);
-        }
-        public static object DeserializeJsonObject(string json)
-        {
-            JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
-            {
-                MissingMemberHandling = MissingMemberHandling.Ignore,
-                PreserveReferencesHandling = PreserveReferencesHandling.All,
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                ConstructorHandling = ConstructorHandling.Default,
-                NullValueHandling = NullValueHandling.Ignore
-            };
-
-            return JsonConvert.DeserializeObject(json, jsonSerializerSettings);
+            return System.Text.Json.JsonSerializer.Serialize(obj, defaultOptions);
         }
 
         /// <summary>Serializza l'oggetto in una stringa xml (DataContractSerializer)</summary>
@@ -145,14 +118,7 @@ namespace Common
         /// <returns>String contenente l'xml con l'oggetto serializzato</returns>
         public static string SerializeJsonObject<T>(T obj)
         {
-            JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
-            {
-                Formatting = Formatting.Indented,
-                TypeNameHandling = TypeNameHandling.Auto,
-                NullValueHandling = NullValueHandling.Ignore
-            };
-
-            return JsonConvert.SerializeObject(obj, jsonSerializerSettings);
+            return System.Text.Json.JsonSerializer.Serialize<T>(obj, defaultOptions);
         }
         #endregion
         #region SerializeJsonObject(Type t, T obj)
@@ -162,7 +128,7 @@ namespace Common
         /// <returns>String contenente l'xml con l'oggetto serializzato</returns>
         public static string SerializeJsonObject(Type t, object obj)
         {
-            return JsonConvert.SerializeObject(obj);
+            return System.Text.Json.JsonSerializer.Serialize(obj, t);
         }
         #endregion
         #region DeserializeJsonObject<T>(string json)
@@ -172,7 +138,7 @@ namespace Common
         /// <returns>Oggetto del tipo specificato</returns>
         public static T DeserializeJsonObject<T>(string json)
         {
-            return JsonConvert.DeserializeObject<T>(json);
+            return System.Text.Json.JsonSerializer.Deserialize<T>(json);
         }
         #endregion
         #region DeserializeJsonObject(Type t, string json)
@@ -182,7 +148,7 @@ namespace Common
         /// <returns>Oggetto del tipo specificato</returns>
         public static object DeserializeJsonObject(Type t, string json)
         {
-            return JsonConvert.DeserializeObject(json, t, default(JsonSerializerSettings));
+            return System.Text.Json.JsonSerializer.Deserialize(json, t, defaultOptions);
         }
         #endregion
 
