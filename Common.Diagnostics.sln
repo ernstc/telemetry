@@ -37,7 +37,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasySampleCore", "Samples\0
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasySample500", "Samples\01. wpf\EasySample500\EasySample500.csproj", "{430812C1-1387-49CB-B7CA-A3E9D7EA3A14}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasySampleAspNetCore31", "Samples\02. aspnet\EasySampleAspNetCore31\EasySampleAspNetCore31.csproj", "{B6200010-469A-490D-9AA5-1C84F1150B98}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasySampleAspNetCore31", "Samples\02. aspnet\EasySampleAspNetCore31\EasySampleAspNetCore31.csproj", "{B6200010-469A-490D-9AA5-1C84F1150B98}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
