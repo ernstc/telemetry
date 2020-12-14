@@ -1,16 +1,18 @@
 # INTRODUCTION 
-__Common.Diagnostics__ component provides __telemetry__ with application execution flow to .Net System.Diagnostics listeners.<br>
+__Common.Diagnostics__ is a .Net Standard component that provides __telemetry__ with application execution flow to .Net System.Diagnostics listeners.<br>
 <br>
 Basic execution flow is gathered by means of compiler generated information (eg. methodnames are obtained with `[CallerMemberName]` attribute).<br>
 Start and completion of code sections are gathered by means of `using` statements with a `CodeSection` class.<br>
-References to Execution flow are gathered into a `TraceEntry` structure and sent to the configured listeners by means of .Net framework System.Diagnostics interfaces.<br>
+The Execution flow is described by means of a `TraceEntry` structure that gathers references to information about the running code and variables.
+`TraceEntry` structures are sent to the configured listeners by means of .Net framework System.Diagnostics interfaces.<br>
 <br>
 Listeners receive telemetry data as structured TraceEntries.<br>
 So, telemetry data is sent to the listeners without being read, serialized or processed anyway by TraceManager and CodeSection classes.<br>
 This allows to every single listener *to access, process and display only the information that is required for its specific purpose*.<br>
 Also, this allows saving processing cost of data that is not rendered (eg. debug message strings are not even created when debug telemetry is disabled)<br>
 <br>
-Common.Diagnostics component is supported on .Net Framework 4.6.2+, .Net Core 3.1+ and .Net 5.0+.
+Common.Diagnostics is supported by any .Net Framework version supporting .Net Standard 2.0.
+Examples are provided for .NetCore 3.1+ and .Net Framework 4.6.2+ (including  .Net Framework 5.0).
 
 # GETTING STARTED
 <!-- span style="background-color: #FFFF99">TraceManager.Debug</span -->
