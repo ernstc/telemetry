@@ -23,13 +23,30 @@ namespace EasySample462
     /// <summary>Interaction logic for MainWindow.xaml</summary>
     public partial class MainWindow : Window
     {
+        System.Timers.Timer timer;
+
         public MainWindow()
         {
             using (var sec = this.GetCodeSection())
             { 
                 InitializeComponent();
+
+                timer = new System.Timers.Timer();
+                timer.Elapsed += Timer_Elapsed;
+                timer.Interval = 10000;
+                timer.Start();
             }
         }
+
+        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            using (var sec = this.GetCodeSection())
+            {
+                timer.Stop();
+                timer.Start();
+            }
+        }
+
 
         private void MainWindow_Initialized(object sender, EventArgs e)
         {
