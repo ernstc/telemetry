@@ -1,7 +1,7 @@
 ﻿
 namespace EasySampleService
 {
-    partial class Service1
+    partial class EasySampleService
     {
         /// <summary> 
         /// Required designer variable.
