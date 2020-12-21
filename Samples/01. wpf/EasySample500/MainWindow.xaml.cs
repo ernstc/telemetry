@@ -2,6 +2,7 @@
 using Common;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -20,9 +21,8 @@ using Metrics = System.Collections.Generic.Dictionary<string, object>; // $$$
 
 namespace EasySample500
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
+    //public class C : WeakEventManager { }
+    /// <summary>Interaction logic for MainWindow.xaml</summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
@@ -32,7 +32,6 @@ namespace EasySample500
                 InitializeComponent();
             }
         }
-
         private void MainWindow_Initialized(object sender, EventArgs e)
         {
             using (var sec = this.GetCodeSection(new { sender = sender.GetLogString(), e = e.GetLogString() }))

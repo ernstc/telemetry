@@ -661,7 +661,10 @@ namespace Common
             this.CallStartMilliseconds = _stopwatch.ElapsedMilliseconds;
             this.CallStartTicks = startTicks;
 
-            _caller = TraceManager.CurrentCodeSection.Value;
+            var caller = TraceManager.CurrentCodeSection.Value;
+            while (caller != null && caller._disposed) { caller = caller._caller; }
+            _caller = caller;
+
             if (disableStartEndTraces == false) { TraceManager.CurrentCodeSection.Value = this; }
 
             if (_caller != null)
