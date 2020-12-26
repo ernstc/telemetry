@@ -60,9 +60,18 @@ namespace Common
             _lockListenersNotifications.PropertyChanged += _lockListenersNotifications_PropertyChanged;
 
             Stopwatch.Start();
-            CurrentProcess = Process.GetCurrentProcess();
-            ProcessName = CurrentProcess.ProcessName;
-            ProcessId = CurrentProcess.Id;
+            try
+            {
+                CurrentProcess = Process.GetCurrentProcess();
+                ProcessName = CurrentProcess.ProcessName;
+                ProcessId = CurrentProcess.Id;
+            }
+            catch (PlatformNotSupportedException)
+            {
+                ProcessName = "NO_PROCESS";
+                ProcessId = -1;
+            }
+
 
             EntryAssembly = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
         }
@@ -111,7 +120,7 @@ namespace Common
                                           .AddInMemoryCollection();
                             builder.AddEnvironmentVariables();
                             configuration = builder.Build();
-                        } 
+                        }
 
                         TraceManager.Configuration = configuration;
                         ConfigurationHelper.Init(configuration);
@@ -691,7 +700,19 @@ namespace Common
                 // traceSource.TraceData()
                 if (TraceSource?.Listeners != null && TraceSource.Listeners.Count > 0) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
                 // Trace.WriteLine()
-                if (Trace.Listeners != null && Trace.Listeners.Count > 0) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                if (Trace.Listeners != null && Trace.Listeners.Count > 0)
+                {
+                    foreach (TraceListener listener in Trace.Listeners)
+                    {
+                        try
+                        {
+                            listener.WriteLine(entry);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                }
             }
             else
             {
