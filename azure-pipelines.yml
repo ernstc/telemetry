@@ -15,6 +15,7 @@ trigger:
     - Common.Diagnostics.AppInsights/Properties
     - Common.Diagnostics.Log4net/Properties
     - Common.Diagnostics.Serilog/Properties
+    - Samples
     - docs/*
     - docs/README.md
 
