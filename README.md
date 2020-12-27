@@ -1,5 +1,5 @@
 # INTRODUCTION 
-__Common.Diagnostics__ is a .Net Standard component that provides __telemetry__ with application execution flow to .Net System.Diagnostics listeners.<br>
+__Common.Diagnostics__ is a .Net Standard 2.0 component that provides __telemetry__ with application execution flow to .Net System.Diagnostics listeners.<br>
 <br>
 Basic execution flow is gathered by means of compiler generated information (eg. methodnames are obtained with `[CallerMemberName]` attribute).<br>
 Start and completion of code sections are gathered by means of `using` statements with a `CodeSection` class.<br>
