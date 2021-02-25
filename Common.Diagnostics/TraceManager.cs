@@ -112,11 +112,14 @@ namespace Common
                             var currentDirectory = Directory.GetCurrentDirectory();
                             var appdomainFolder = System.AppDomain.CurrentDomain.BaseDirectory.Trim('\\');
 
+                            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.ToLower();
+                            if (string.IsNullOrEmpty(environment)) { environment = Environment.GetEnvironmentVariable("ENVIRONMENT")?.ToLower(); }
+                            if (string.IsNullOrEmpty(environment)) { environment = "production"; }
+
                             jsonFile = currentDirectory == appdomainFolder ? $"{jsonFileName}.json" : Path.Combine(appdomainFolder, $"{jsonFileName}.json");
                             var builder = new ConfigurationBuilder()
-
                                           .AddJsonFile(jsonFile, true, true)
-                                          //.AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true)
+                                          .AddJsonFile($"appsettings.{environment}.json", true, true)
                                           .AddInMemoryCollection();
                             builder.AddEnvironmentVariables();
                             configuration = builder.Build();
