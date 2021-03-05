@@ -42,7 +42,7 @@ namespace Common
         internal static Process CurrentProcess { get; set; }
         internal static Assembly EntryAssembly { get; set; }
         public static string ProcessName = null;
-        public static string Environment = null;
+        public static string EnvironmentName = null;
         public static int ProcessId = -1;
         internal static Reference<bool> _lockListenersNotifications = new Reference<bool>(true);
         internal static Reference<bool> _isInitializing = new Reference<bool>(false);
@@ -137,7 +137,7 @@ namespace Common
                             builder.AddEnvironmentVariables();
                             configuration = builder.Build();
 
-                            TraceManager.Environment = environment;
+                            TraceManager.EnvironmentName = environment;
                         }
 
                         TraceManager.Configuration = configuration;
