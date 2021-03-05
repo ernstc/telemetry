@@ -28,7 +28,6 @@ namespace Common
         public const string CONFIGSETTING_MAXMESSAGELENERROR = "MaxMessageLenError"; public const int CONFIGDEFAULT_MAXMESSAGELENERROR = -1;
         public const string CONFIGSETTING_DEFAULTLISTENERTYPENAME = "Common.TraceListenerDefault,Common.Diagnostics";
         #endregion
-
         #region internal state
         private static Type T = typeof(TraceManager);
         private static readonly string _traceSourceName = "TraceSource";
@@ -43,6 +42,7 @@ namespace Common
         internal static Process CurrentProcess { get; set; }
         internal static Assembly EntryAssembly { get; set; }
         public static string ProcessName = null;
+        public static string Environment = null;
         public static int ProcessId = -1;
         internal static Reference<bool> _lockListenersNotifications = new Reference<bool>(true);
         internal static Reference<bool> _isInitializing = new Reference<bool>(false);
@@ -112,17 +112,32 @@ namespace Common
                             var currentDirectory = Directory.GetCurrentDirectory();
                             var appdomainFolder = System.AppDomain.CurrentDomain.BaseDirectory.Trim('\\');
 
-                            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.ToLower();
-                            if (string.IsNullOrEmpty(environment)) { environment = Environment.GetEnvironmentVariable("ENVIRONMENT")?.ToLower(); }
+                            var environment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.ToLower();
+                            if (string.IsNullOrEmpty(environment)) { environment = System.Environment.GetEnvironmentVariable("ENVIRONMENT")?.ToLower(); }
                             if (string.IsNullOrEmpty(environment)) { environment = "production"; }
 
                             jsonFile = currentDirectory == appdomainFolder ? $"{jsonFileName}.json" : Path.Combine(appdomainFolder, $"{jsonFileName}.json");
-                            var builder = new ConfigurationBuilder()
-                                          .AddJsonFile(jsonFile, true, true)
-                                          .AddJsonFile($"appsettings.{environment}.json", true, true)
-                                          .AddInMemoryCollection();
+
+                            var builder = default(IConfigurationBuilder);
+                            DebugHelper.IfDebug(() =>
+                            {   // for debug build only check environment setting on appsettings.json
+                                builder = new ConfigurationBuilder()
+                                              .AddJsonFile(jsonFile, true, true)
+                                              .AddInMemoryCollection();
+                                builder.AddEnvironmentVariables();
+                                configuration = builder.Build();
+                                var jsonEnvironment = Configuration.GetValue($"AppSettings:Environment", "");
+                                if (string.IsNullOrEmpty(jsonEnvironment)) { environment = jsonEnvironment; }
+                            });
+
+                            builder = new ConfigurationBuilder()
+                                      .AddJsonFile(jsonFile, true, true)
+                                      .AddJsonFile($"appsettings.{environment}.json", true, true)
+                                      .AddInMemoryCollection();
                             builder.AddEnvironmentVariables();
                             configuration = builder.Build();
+
+                            TraceManager.Environment = environment;
                         }
 
                         TraceManager.Configuration = configuration;
