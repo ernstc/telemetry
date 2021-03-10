@@ -25,8 +25,9 @@ namespace EasySample500
     /// <summary>Interaction logic for MainWindow.xaml</summary>
     public partial class MainWindow : Window
     {
-        public MainWindow()
+        public MainWindow() // ILogger logger
         {
+            //_logger = logger;
             using (var sec = this.GetCodeSection())
             {
                 InitializeComponent();
@@ -41,6 +42,14 @@ namespace EasySample500
                 sec.Warning("this is a Warning trace", "User.Report");
                 sec.Error("this is a error trace", "Resource");
             }
+
+            //using (_logger.BeginScope()) 
+            //{
+            //    _logger.Debug("this is a debug trace", "User", properties: new Dictionary<string, object>() { { "", "" } });
+            //    _logger.Information("this is a Information trace", "Raw");
+            //    _logger.Warning("this is a Warning trace", "User.Report");
+            //    _logger.Error("this is a error trace", "Resource");
+            //}
         }
 
         private void btnRun_Click(object sender, RoutedEventArgs e)

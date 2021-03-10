@@ -18,6 +18,13 @@ namespace EasySample500
 
         static App()
         {
+            // builder....
+            // void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+            //    var diginsightFactory = loggerFactory.AddDiginsight(app, env, Configuration);
+            //                            diginsightFactory.AddApplicationInsights()
+            //                            diginsightFactory.AddConsole()
+            //                            diginsightFactory.AddEventLog()
+
             //TraceManager.Init(SourceLevels.All, null);
             using (var sec = TraceManager.GetCodeSection(T))
             {
@@ -44,7 +51,5 @@ namespace EasySample500
                 //LogStringExtensions.RegisterLogstringProvider(this);
             }
         }
-
-
     }
 }
