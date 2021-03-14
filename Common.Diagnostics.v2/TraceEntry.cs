@@ -21,8 +21,6 @@ namespace Common
     public struct TraceEntry
     {
         public TraceEventType TraceEventType { get; set; }
-        [JsonIgnore]
-        public TraceSource TraceSource { get; set; }
         public string Message { get; set; }
         public IDictionary<string, object> Properties { get; set; }
         public string Source { get; set; }
@@ -32,11 +30,14 @@ namespace Common
         public DateTimeOffset Timestamp { get; set; }
         public long TraceStartTicks { get; set; }
         public Exception Exception { get; set; }
-        [JsonIgnore]
-        public Thread Thread { get; set; }
         public int ThreadID { get; set; }
         public ApartmentState ApartmentState { get; set; }
         public bool DisableCRLFReplace { get; set; }
+        public Func<string> GetMessage { get; set; }
+        [JsonIgnore]
+        public Thread Thread { get; set; }
+        [JsonIgnore]
+        public TraceSource TraceSource { get; set; }
         [JsonIgnore]
         public CodeSection CodeSection { get; set; }
         [JsonIgnore]

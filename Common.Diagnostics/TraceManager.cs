@@ -104,42 +104,7 @@ namespace Common
                     {
                         if (TraceManager.Configuration != null) { return; }
 
-                        if (configuration == null)
-                        {
-                            //var env = hostingContext.HostingEnvironment;
-                            var jsonFile = "";
-                            var jsonFileName = "appsettings";
-                            var currentDirectory = Directory.GetCurrentDirectory();
-                            var appdomainFolder = System.AppDomain.CurrentDomain.BaseDirectory.Trim('\\');
-
-                            var environment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.ToLower();
-                            if (string.IsNullOrEmpty(environment)) { environment = System.Environment.GetEnvironmentVariable("ENVIRONMENT")?.ToLower(); }
-                            if (string.IsNullOrEmpty(environment)) { environment = "production"; }
-
-                            jsonFile = currentDirectory == appdomainFolder ? $"{jsonFileName}.json" : Path.Combine(appdomainFolder, $"{jsonFileName}.json");
-
-                            var builder = default(IConfigurationBuilder);
-                            DebugHelper.IfDebug(() =>
-                            {   // for debug build only check environment setting on appsettings.json
-                                builder = new ConfigurationBuilder()
-                                              .AddJsonFile(jsonFile, true, true)
-                                              .AddInMemoryCollection();
-                                builder.AddEnvironmentVariables();
-                                configuration = builder.Build();
-                                var jsonEnvironment = Configuration.GetValue($"AppSettings:Environment", "");
-                                if (string.IsNullOrEmpty(jsonEnvironment)) { environment = jsonEnvironment; }
-                            });
-
-                            builder = new ConfigurationBuilder()
-                                      .AddJsonFile(jsonFile, true, true)
-                                      .AddJsonFile($"appsettings.{environment}.json", true, true)
-                                      .AddInMemoryCollection();
-                            builder.AddEnvironmentVariables();
-                            configuration = builder.Build();
-
-                            TraceManager.EnvironmentName = environment;
-                        }
-
+                        if (configuration == null) { configuration = GetConfiguration(); }
                         TraceManager.Configuration = configuration;
                         ConfigurationHelper.Init(configuration);
 
@@ -541,6 +506,45 @@ namespace Common
             return null;
         }
         #endregion
+
+        public static IConfiguration GetConfiguration()
+        {
+            IConfiguration configuration = null;
+            var jsonFileName = "appsettings";
+            var currentDirectory = Directory.GetCurrentDirectory();
+            var appdomainFolder = System.AppDomain.CurrentDomain.BaseDirectory.Trim('\\');
+
+            var environment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.ToLower();
+            if (string.IsNullOrEmpty(environment)) { environment = System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")?.ToLower(); }
+            if (string.IsNullOrEmpty(environment)) { environment = System.Environment.GetEnvironmentVariable("ENVIRONMENT")?.ToLower(); }
+            if (string.IsNullOrEmpty(environment)) { environment = "production"; }
+
+            var jsonFile = currentDirectory == appdomainFolder ? $"{jsonFileName}.json" : Path.Combine(appdomainFolder, $"{jsonFileName}.json");
+            var builder = default(IConfigurationBuilder);
+            DebugHelper.IfDebug(() =>
+            {   // for debug build only check environment setting on appsettings.json
+                builder = new ConfigurationBuilder()
+                              .AddJsonFile(jsonFile, true, true)
+                              .AddInMemoryCollection();
+
+                builder.AddEnvironmentVariables();
+                configuration = builder.Build();
+                var jsonEnvironment = configuration.GetValue($"AppSettings:Environment", "");
+                if (string.IsNullOrEmpty(jsonEnvironment)) { environment = jsonEnvironment; }
+            });
+
+            var environmentJsonFile = currentDirectory == appdomainFolder ? $"{jsonFileName}.json" : Path.Combine(appdomainFolder, $"{jsonFileName}.{environment}.json");
+            builder = new ConfigurationBuilder()
+                      .AddJsonFile(jsonFile, true, true);
+            if (File.Exists(environmentJsonFile)) { builder = builder.AddJsonFile(environmentJsonFile, true, true); }
+            builder = builder.AddInMemoryCollection();
+            builder.AddEnvironmentVariables();
+            configuration = builder.Build();
+
+            TraceManager.EnvironmentName = environment;
+
+            return configuration;
+        }
     }
 }
 

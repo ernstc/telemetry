@@ -468,7 +468,7 @@ namespace Common
                 case TraceEventType.Stop:
                     // line = $"[{now}] {processName} {source} {category} {tidpid} - {sourceLevel} - {nesting} {message}"; "[{0}] {1} {2} {3} - {4,-11} - {5} {6} ({7} secs)"
                     section = !string.IsNullOrEmpty(codeSection.Name) ? string.Format(".{0}", codeSection.Name) : null;
-                    message = string.Format("{0}.{1}{2}() END", !string.IsNullOrWhiteSpace(codeSection.T.Name) ? codeSection.T.Name : string.Empty, codeSection.MemberName, section);
+                    message = string.Format("{0}.{1}{2}() END", !string.IsNullOrWhiteSpace(codeSection.getClassName()) ? codeSection.getClassName() : string.Empty, codeSection.MemberName, section);
                     if (codeSection.Result != null)
                     {
                         var maxResultLen = maxMessageLen >= 0 ? (int)maxMessageLen - Min((int)maxMessageLen, message.Length) : -1;
