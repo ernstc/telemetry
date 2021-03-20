@@ -25,17 +25,10 @@ namespace EasySample
     {
         static Type T = typeof(App);
         public IHost Host;
-        private ILogger _logger;
+        private ILogger<App> _logger;
 
         static App()
         {
-            // builder....
-            // void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
-            //    var diginsightFactory = loggerFactory.AddDiginsight(app, env, Configuration);
-            //                            diginsightFactory.AddApplicationInsights()
-            //                            diginsightFactory.AddConsole()
-            //                            diginsightFactory.AddEventLog()
-
             //TraceManager.Init(null);
             //using (var sec = TraceManager.GetCodeSection(T))
             //{
@@ -70,7 +63,7 @@ namespace EasySample
                     {
                         ConfigureServices(context.Configuration, services);
                     })
-                    .ConfigureLogging(loggingBuilder =>
+                    .ConfigureLogging((context, loggingBuilder) =>
                     {
                         loggingBuilder.ClearProviders();
 
@@ -79,16 +72,13 @@ namespace EasySample
                         var log4NetProvider = new Log4NetProvider(options);
                         loggingBuilder.AddDiginsight(log4NetProvider, configuration);
 
-                        //loggingBuilder.AddDiginsight(new DebugLoggerProvider(), configuration);
-                        //loggingBuilder.AddLog4Net();
-
-                        // Add other loggers...
                     }).Build();
 
-            //using (var sec = _logger.BeginScope(GetMethodName()))
-            //{
-            //LogStringExtensions.RegisterLogstringProvider(this);
-            //}
+            _logger.Start(Host);
+            using (var scope = _logger.BeginMethodScope())
+            {
+                // LogStringExtensions.RegisterLogstringProvider(this);
+            }
             await Host.StartAsync();
 
             var mainWindow = Host.Services.GetRequiredService<MainWindow>();
@@ -114,21 +104,6 @@ namespace EasySample
             base.OnExit(e);
         }
 
-        //public static IHostBuilder CreateHostBuilder(string[] args) =>
-        // Host.CreateDefaultBuilder(args)
-        //     .ConfigureLogging(logging =>
-        //     {
-        //         logging.ClearProviders();
-        //         logging.AddConsole();
-        //         //logging.AddEventLog(eventLogSettings =>
-        //         //{
-        //         //    eventLogSettings.SourceName = "MyLogs";
-        //         //});
-        //     });
-        //// .ConfigureWebHostDefaults(webBuilder =>
-        //// {
-        ////     webBuilder.UseStartup<Startup>();
-        //// });
         private string GetMethodName([CallerMemberName] string memberName = "") { return memberName; }
     }
 }

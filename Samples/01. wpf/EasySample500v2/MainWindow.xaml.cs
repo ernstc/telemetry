@@ -29,15 +29,18 @@ namespace EasySample
     public partial class MainWindow : Window
     {
         private static ILogger<MainWindow> _logger;
-        
+
         private string GetScope([CallerMemberName] string memberName = "") { return memberName; }
 
-        public MainWindow()
+        static MainWindow()
         {
-            //var host = (App.Current as App).Host;
-            //var logger = host.Services.GetRequiredService<ILogger<MainWindow>>();
+            var host = (App.Current as App).Host;
+            var logger = host.Services.GetRequiredService<ILogger<MainWindow>>();
+            using (var scope = logger.BeginMethodScope())
+            {
+            }
         }
-        public MainWindow(ILogger<MainWindow> logger) // ILogger logger
+        public MainWindow(ILogger<MainWindow> logger) 
         {
             _logger = logger;
             using (_logger.BeginScope(TraceLogger.GetMethodName()))
@@ -47,22 +50,31 @@ namespace EasySample
         }
         private void MainWindow_Initialized(object sender, EventArgs e)
         {
-            using (_logger.BeginMethodScope())
+            using (var scope = _logger.BeginMethodScope())
             {
+                sampleMethod();
                 _logger.LogDebug("this is a debug trace", "User"); // , properties: new Dictionary<string, object>() { { "", "" } }
-                _logger.LogInformation("this is a debug trace", "User"); // , properties: new Dictionary<string, object>() { { "", "" } }
+                _logger.Information("this is a debug trace", "User"); // , properties: new Dictionary<string, object>() { { "", "" } }
                 _logger.LogInformation("this is a Information trace", "Raw");
                 _logger.LogWarning("this is a Warning trace", "User.Report");
                 _logger.LogError("this is a error trace", "Resource");
-            }
 
-            //using (_logger.BeginScope()) 
-            //{
-            //    _logger.Debug("this is a debug trace", "User", properties: new Dictionary<string, object>() { { "", "" } });
-            //    _logger.Information("this is a Information trace", "Raw");
-            //    _logger.Warning("this is a Warning trace", "User.Report");
-            //    _logger.Error("this is a error trace", "Resource");
-            //}
+                _logger.LogError("this is a error trace", "Resource");
+
+                //TraceManager.Debug("")
+                scope.LogDebug("this is a debug trace", "User"); // , properties: new Dictionary<string, object>() { { "", "" } }
+                scope.LogInformation("this is a debug trace", "User"); // , properties: new Dictionary<string, object>() { { "", "" } }
+                scope.LogInformation("this is a Information trace", "Raw");
+                scope.LogWarning("this is a Warning trace", "User.Report");
+                scope.LogError("this is a error trace", "Resource");
+
+                scope.LogError("this is a error trace", "Resource");
+            }
+        }
+        void sampleMethod()
+        {
+            _logger.LogDebug("pippo");
+
         }
 
         private void btnRun_Click(object sender, RoutedEventArgs e)

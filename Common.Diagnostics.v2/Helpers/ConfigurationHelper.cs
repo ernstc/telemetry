@@ -42,7 +42,7 @@ namespace Common
         }
         #endregion
         #region GetClassSetting
-        public static TRet GetClassSetting<TClass, TRet>(string name, TRet defaultValue = default(TRet), CultureInfo culture = null)
+        public static TRet GetClassSetting<TClass, TRet>(string name, TRet defaultValue = default(TRet), CultureInfo culture = null, string suffix = null)
         {
             if (culture == null) { culture = CultureInfo.CurrentCulture; }
 
@@ -51,11 +51,26 @@ namespace Common
             {
                 Type type = typeof(TClass); Assembly assembly = type.Assembly;
                 var assemblyName = GetConfigName(assembly); var className = GetConfigName(type);
-                var specificName = $"{assemblyName}.{className}.{name}";
-                var sectionName = $"{className}.{name}";
-                var groupName = $"{name}";
+                var specificName = default(string);
+                var sectionName = default(string);
+                var groupName = default(string);
 
-                var valueString = GetSetting<string>(specificName, null);
+                var valueString = default(string);
+                if (!string.IsNullOrEmpty(suffix))
+                {
+                    specificName = $"{assemblyName}.{className}.{suffix}.{name}";
+                    sectionName = $"{className}.{suffix}.{name}";
+                    groupName = $"{suffix}.{name}";
+
+                    valueString = GetSetting<string>(specificName, null);
+                    if (valueString == null) { valueString = GetSetting<string>(sectionName, null); }
+                    if (valueString == null) { valueString = GetSetting<string>(groupName, null); }
+                }
+
+                specificName = $"{assemblyName}.{className}.{name}";
+                sectionName = $"{className}.{name}";
+                groupName = $"{name}";
+                valueString = GetSetting<string>(specificName, null);
                 if (valueString == null) { valueString = GetSetting<string>(sectionName, null); }
                 if (valueString == null) { valueString = GetSetting<string>(groupName, null); }
                 if (valueString == null) { return ret; }

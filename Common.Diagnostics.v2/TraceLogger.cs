@@ -1,6 +1,7 @@
 ﻿#region using
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using System;
@@ -8,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -68,47 +70,29 @@ namespace Common
         #region internal state
         private static Type T = typeof(TraceLogger);
         private static readonly string _traceSourceName = "TraceSource";
-        public static Func<string, string> CRLF2Space = (string s) => { return s?.Replace("\r", " ")?.Replace("\n", " "); };
-        public static Func<string, string> CRLF2Encode = (string s) => { return s?.Replace("\r", "\\r")?.Replace("\n", "\\n"); };
         public string Name { get; set; }
-        bool _lastWriteContinuationEnabled;
-        public string _CRReplace, _LFReplace;
-        public string _timestampFormat;
-        public bool _showNestedFlow, _showTraceCost, _flushOnWrite;
-        public int _processNamePadding, _sourcePadding, _categoryPadding, _sourceLevelPadding, _deltaPadding, _traceDeltaPadding, _traceMessageFormatPrefixLen;
-        public string _traceMessageFormatPrefix, _traceMessageFormat, _traceMessageFormatVerbose, _traceMessageFormatInformation, _traceMessageFormatWarning, _traceMessageFormatError, _traceMessageFormatCritical;
-        public string _traceMessageFormatStart, _traceMessageFormatStop, _traceMessageFormatInlineStop, _traceMessageFormatSuspend, _traceMessageFormatResume, _traceMessageFormatTransfer;
-        public string _filter, _categoryFilter;
-        public string _traceDeltaDefault;
-        public TraceEventType _allowedEventTypes = TraceEventType.Critical | TraceEventType.Error | TraceEventType.Warning | TraceEventType.Information | TraceEventType.Verbose | TraceEventType.Start | TraceEventType.Stop | TraceEventType.Suspend | TraceEventType.Resume | TraceEventType.Transfer;
-        //private readonly int _timeout = 10;
-        TraceEntry lastWrite = default(TraceEntry);
-
-        public static IConfiguration Configuration { get; private set; }
-        public static ConcurrentDictionary<string, object> Properties { get; set; } = new ConcurrentDictionary<string, object>();
-        //public static ConcurrentDictionary<Assembly, IModuleContext> Modules { get; set; } = new ConcurrentDictionary<Assembly, IModuleContext>();
         public static TraceSource TraceSource { get; set; }
         public static Stopwatch Stopwatch = new Stopwatch();
+        public static IHost Host { get; set; }
         internal static Process CurrentProcess { get; set; }
         internal static Assembly EntryAssembly { get; set; }
         public static SystemDiagnosticsConfig Config { get; set; }
         public static string ProcessName = null;
         public static string EnvironmentName = null;
         public static int ProcessId = -1;
+        public IList<ILogger> Listeners { get; } = new List<ILogger>();
+        public TraceLoggerProvider Provider { get; set; }
+        public static IConfiguration Configuration { get; private set; }
+
+        internal static ConcurrentQueue<TraceEntry> _pendingEntries = new ConcurrentQueue<TraceEntry>();
         internal static Reference<bool> _lockListenersNotifications = new Reference<bool>(true);
         internal static Reference<bool> _isInitializing = new Reference<bool>(false);
         internal static Reference<bool> _isInitializeComplete = new Reference<bool>(false);
-        internal static ConcurrentQueue<TraceEntry> _pendingEntries = new ConcurrentQueue<TraceEntry>();
-
-        // Asynchronous flow ambient data.
-        public IList<ILogger> Listeners { get; } = new List<ILogger>();
         #endregion
 
         #region .ctor
         static TraceLogger()
         {
-            _lockListenersNotifications.PropertyChanged += _lockListenersNotifications_PropertyChanged;
-
             Stopwatch.Start();
             try
             {
@@ -124,84 +108,12 @@ namespace Common
 
             EntryAssembly = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
         }
-        public TraceLogger(string name)
+        public TraceLogger(TraceLoggerProvider provider, string name)
         {
+            this.Provider = provider;
             this.Name = name;
-            _CRReplace = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, string>(CONFIGSETTING_CRREPLACE, CONFIGDEFAULT_CRREPLACE);
-            _LFReplace = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, string>(CONFIGSETTING_LFREPLACE, CONFIGDEFAULT_LFREPLACE);  // ConfigurationHelper.GetSetting<int>(CONFIGSETTING_LFREPLACE, CONFIGDEFAULT_LFREPLACE);
-            _timestampFormat = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, string>(CONFIGSETTING_TIMESTAMPFORMAT, CONFIGDEFAULT_TIMESTAMPFORMAT);  // ConfigurationHelper.GetSetting<int>(CONFIGSETTING_TIMESTAMPFORMAT, CONFIGDEFAULT_TIMESTAMPFORMAT);
-            _showNestedFlow = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, bool>(CONFIGSETTING_SHOWNESTEDFLOW, CONFIGDEFAULT_SHOWNESTEDFLOW);
-            _showTraceCost = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, bool>(CONFIGSETTING_SHOWTRACECOST, CONFIGDEFAULT_SHOWTRACECOST);
-            _flushOnWrite = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, bool>(CONFIGSETTING_FLUSHONWRITE, CONFIGDEFAULT_FLUSHONWRITE);
-            _processNamePadding = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, int>(CONFIGSETTING_PROCESSNAMEPADDING, CONFIGDEFAULT_PROCESSNAMEPADDING);
-            _sourcePadding = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, int>(CONFIGSETTING_SOURCEPADDING, CONFIGDEFAULT_SOURCEPADDING);
-            _categoryPadding = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, int>(CONFIGSETTING_CATEGORYPADDING, CONFIGDEFAULT_CATEGORYPADDING);
-            _sourceLevelPadding = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, int>(CONFIGSETTING_SOURCELEVELPADDING, CONFIGDEFAULT_SOURCELEVELPADDING);
-            _deltaPadding = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, int>(CONFIGSETTING_DELTAPADDING, CONFIGDEFAULT_DELTAPADDING);
-            _lastWriteContinuationEnabled = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, bool>(CONFIGSETTING_LASTWRITECONTINUATIONENABLED, CONFIGDEFAULT_LASTWRITECONTINUATIONENABLED);
-            _traceMessageFormatPrefix = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, string>(CONFIGSETTING_TRACEMESSAGEFORMATPREFIX, CONFIGDEFAULT_TRACEMESSAGEFORMATPREFIX);
-            _traceMessageFormat = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, string>(CONFIGSETTING_TRACEMESSAGEFORMAT, CONFIGDEFAULT_TRACEMESSAGEFORMAT);
-            _traceMessageFormatVerbose = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, string>(CONFIGSETTING_TRACEMESSAGEFORMATVERBOSE, CONFIGDEFAULT_TRACEMESSAGEFORMATVERBOSE); if (string.IsNullOrEmpty(_traceMessageFormatVerbose)) { _traceMessageFormatVerbose = _traceMessageFormat; }
-            _traceMessageFormatInformation = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, string>(CONFIGSETTING_TRACEMESSAGEFORMATINFORMATION, CONFIGDEFAULT_TRACEMESSAGEFORMATINFORMATION); if (string.IsNullOrEmpty(_traceMessageFormatInformation)) { _traceMessageFormatInformation = _traceMessageFormat; }
-            _traceMessageFormatWarning = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, string>(CONFIGSETTING_TRACEMESSAGEFORMATWARNING, CONFIGDEFAULT_TRACEMESSAGEFORMATWARNING); if (string.IsNullOrEmpty(_traceMessageFormatWarning)) { _traceMessageFormatWarning = _traceMessageFormat; }
-            _traceMessageFormatError = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, string>(CONFIGSETTING_TRACEMESSAGEFORMATERROR, CONFIGDEFAULT_TRACEMESSAGEFORMATERROR); if (string.IsNullOrEmpty(_traceMessageFormatError)) { _traceMessageFormatError = _traceMessageFormat; }
-            _traceMessageFormatCritical = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, string>(CONFIGSETTING_TRACEMESSAGEFORMATCRITICAL, CONFIGDEFAULT_TRACEMESSAGEFORMATCRITICAL); if (string.IsNullOrEmpty(_traceMessageFormatCritical)) { _traceMessageFormatCritical = _traceMessageFormat; }
-            _traceMessageFormatStart = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, string>(CONFIGSETTING_TRACEMESSAGEFORMATSTART, CONFIGDEFAULT_TRACEMESSAGEFORMATSTART); if (string.IsNullOrEmpty(_traceMessageFormatStart)) { _traceMessageFormatStart = _traceMessageFormat; }
-            _traceMessageFormatStop = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, string>(CONFIGSETTING_TRACEMESSAGEFORMATSTOP, CONFIGDEFAULT_TRACEMESSAGEFORMATSTOP); if (string.IsNullOrEmpty(_traceMessageFormatStop)) { _traceMessageFormatStop = _traceMessageFormat; }
-            _traceMessageFormatInlineStop = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, string>(CONFIGSETTING_TRACEMESSAGEFORMATINLINESTOP, CONFIGDEFAULT_TRACEMESSAGEFORMATINLINESTOP); // if (string.IsNullOrEmpty(_traceMessageFormatInlineStop)) { _traceMessageFormatInlineStop = _traceMessageFormat; }
-            _traceMessageFormatSuspend = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, string>(CONFIGSETTING_TRACEMESSAGEFORMATSUSPEND, CONFIGDEFAULT_TRACEMESSAGEFORMATSUSPEND); if (string.IsNullOrEmpty(_traceMessageFormatSuspend)) { _traceMessageFormatSuspend = _traceMessageFormat; }
-            _traceMessageFormatResume = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, string>(CONFIGSETTING_TRACEMESSAGEFORMATRESUME, CONFIGDEFAULT_TRACEMESSAGEFORMATRESUME); if (string.IsNullOrEmpty(_traceMessageFormatResume)) { _traceMessageFormatResume = _traceMessageFormat; }
-            _traceMessageFormatTransfer = ConfigurationHelper.GetClassSetting<TraceListenerFormatItems, string>(CONFIGSETTING_TRACEMESSAGEFORMATTRANSFER, CONFIGDEFAULT_TRACEMESSAGEFORMATTRANSFER); if (string.IsNullOrEmpty(_traceMessageFormatTransfer)) { _traceMessageFormatTransfer = _traceMessageFormat; }
-
-            var thicksPerMillisecond = TraceLogger.Stopwatch.ElapsedTicks / TraceLogger.Stopwatch.ElapsedMilliseconds;
-            string fileName = null, workingDirectory = null;
-            try { fileName = TraceLogger.CurrentProcess?.StartInfo?.FileName; } catch { };
-            try { workingDirectory = TraceLogger.CurrentProcess.StartInfo.WorkingDirectory; } catch { };
-
-            //sec.Information($"Starting TraceListenerFormatItems for: ProcessName: '{TraceLogger.ProcessName}', ProcessId: '{TraceLogger.ProcessId}', FileName: '{fileName}', WorkingDirectory: '{workingDirectory}', EntryAssemblyFullName: '{TraceManager.EntryAssembly?.FullName}', ImageRuntimeVersion: '{TraceManager.EntryAssembly?.ImageRuntimeVersion}', Location: '{TraceManager.EntryAssembly?.Location}', thicksPerMillisecond: '{thicksPerMillisecond}'{Environment.NewLine}"); // "init"
-            //sec.Debug($"_filter '{_filter}', _categoryFilter '{_categoryFilter}', _allowedEventTypes '{_allowedEventTypes}', _showNestedFlow '{_showNestedFlow}', _flushOnWrite '{_flushOnWrite}', _cRReplace '{_CRReplace}', _lFReplace '{_LFReplace}', _timestampFormat '{_timestampFormat}'{Environment.NewLine}"); // "init"
-            //sec.Debug($"_processNamePadding '{_processNamePadding}', _sourcePadding '{_sourcePadding}', _categoryPadding '{_categoryPadding}', _sourceLevelPadding '{_sourceLevelPadding}'{Environment.NewLine}"); // "init"
-            //sec.Debug($"_traceMessageFormat '{_traceMessageFormat}', _traceMessageFormatVerbose '{_traceMessageFormatVerbose}', _traceMessageFormatWarning '{_traceMessageFormatWarning}', _traceMessageFormatError '{_traceMessageFormatError}', _traceMessageFormatCritical '{_traceMessageFormatCritical}', _traceMessageFormatStart '{_traceMessageFormatStart}', _traceMessageFormatStop '{_traceMessageFormatStop}, _traceMessageFormatInlineStop '{_traceMessageFormatInlineStop}'{Environment.NewLine}"); // "init"
-
-            if (!string.IsNullOrEmpty(_traceMessageFormatPrefix))
-            {
-                _traceMessageFormat = _traceMessageFormat.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatVerbose = _traceMessageFormatVerbose.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatInformation = _traceMessageFormatInformation.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatWarning = _traceMessageFormatWarning.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatError = _traceMessageFormatError.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatCritical = _traceMessageFormatCritical.Substring(_traceMessageFormatPrefix.Length);
-
-                _traceMessageFormatStart = _traceMessageFormatStart.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatStop = _traceMessageFormatStop.Substring(_traceMessageFormatPrefix.Length);
-                //_traceMessageFormatInlineStop = _traceMessageFormatInlineStop.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatSuspend = _traceMessageFormatSuspend.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatResume = _traceMessageFormatResume.Substring(_traceMessageFormatPrefix.Length);
-                _traceMessageFormatTransfer = _traceMessageFormatTransfer.Substring(_traceMessageFormatPrefix.Length);
-            }
-
-            int i = 0;
-            var variables = "now, processName, source, category, tidpid, sourceLevel, nesting, message, lastLineDelta, lastLineDeltaPadded, delta, deltaPadded, result, messageNesting".Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries).Select((s) => new { name = s, position = i++ }).ToList();
-            variables.ForEach(v =>
-            {
-                _traceMessageFormatPrefix = _traceMessageFormatPrefix.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormat = _traceMessageFormat.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatVerbose = _traceMessageFormatVerbose.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatInformation = _traceMessageFormatInformation.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatWarning = _traceMessageFormatWarning.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatError = _traceMessageFormatError.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatCritical = _traceMessageFormatCritical.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-
-                _traceMessageFormatStart = _traceMessageFormatStart.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatStop = _traceMessageFormatStop.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatInlineStop = _traceMessageFormatInlineStop.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatSuspend = _traceMessageFormatSuspend.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatResume = _traceMessageFormatResume.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-                _traceMessageFormatTransfer = _traceMessageFormatTransfer.Replace($"{{{v.name}}}", $"{{{v.position}}}");
-            });
         }
         #endregion
-
         #region Init
         public static void Init(IConfiguration configuration)
         {
@@ -209,11 +121,11 @@ namespace Common
             using (new SwitchOnDispose(_lockListenersNotifications, true))
             using (new SwitchOnDispose(_isInitializing, true))
             using (new SwitchOnDispose(_isInitializeComplete, false))
+            using (var sc = TraceLogger.BeginMethodScope(T))
             {
-                //using (var sec = TraceLogger.GetCodeSection(T))
-                //{
                 try
                 {
+                    _lockListenersNotifications.PropertyChanged += _lockListenersNotifications_PropertyChanged;
                     if (configuration == null) { configuration = GetConfiguration(); }
                     TraceLogger.Configuration = configuration;
                     ConfigurationHelper.Init(configuration);
@@ -221,10 +133,9 @@ namespace Common
                 catch (Exception ex)
                 {
                     var message = $"Exception '{ex.GetType().Name}' occurred: {ex.Message}\r\nAdditional Information:\r\n{ex}";
-                    //sec.Exception(new InvalidDataException(message, ex));
-                    Trace.WriteLine(message);
+                    sc.LogException(new InvalidDataException(message, ex));
+                    //Trace.WriteLine(message);
                 }
-                //}
             }
         }
         private static void _lockListenersNotifications_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -242,12 +153,12 @@ namespace Common
         }
         #endregion
 
+
         // ILogger
         public IDisposable BeginScope<TState>(TState state)
         {
-            // string, CodeSection, TraceEntry
             var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-            var sec = new CodeSection(this, this.Name, null, null, TraceLogger.TraceSource, SourceLevels.Verbose, LogLevel.Trace, this.Name, null, null, startTicks, state?.ToString(), null, -1);
+            var sec = new SectionScope(this, this.Name, null, null, TraceLogger.TraceSource, SourceLevels.Verbose, LogLevel.Trace, this.Name, null, null, startTicks, state?.ToString(), null, -1);
             return sec;
         }
         public bool IsEnabled(LogLevel logLevel)
@@ -263,12 +174,12 @@ namespace Common
             {
                 var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
                 var type = typeof(Application);
-                CodeSection caller = CodeSection.CurrentCodeSection.Value as CodeSection;
-                CodeSection innerCodeSection = caller = caller != null ? caller.GetInnerCodeSection() : new CodeSection(this, this.Name, null, null, TraceLogger.TraceSource, SourceLevels.Verbose, LogLevel.Debug, this.Name, null, null, startTicks, "Unknown", null, -1, true);
+                var caller = SectionScope.Current.Value as SectionScope;
+                var innerSectionScope = caller = caller != null ? caller.GetInnerScope() : new SectionScope(this, this.Name, null, null, TraceLogger.TraceSource, SourceLevels.Verbose, LogLevel.Debug, this.Name, null, null, startTicks, "Unknown", null, -1, true) { IsInnerScope = true };
 
                 var stateFormatter = formatter != null ? formatter : (s, exc) => { return s.GetLogString(); };
 
-                entry = new TraceEntry() { GetMessage = () => { return stateFormatter(state, null); }, TraceEventType = TraceEventType.Verbose, SourceLevel = SourceLevels.Verbose, Properties = null, Source = null, Category = this.Name, CodeSection = innerCodeSection, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = false, ElapsedMilliseconds = TraceLogger.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
+                entry = new TraceEntry() { GetMessage = () => { return stateFormatter(state, null); }, TraceEventType = TraceEventType.Verbose, SourceLevel = SourceLevels.Verbose, Properties = null, Source = null, Category = this.Name, SectionScope = innerSectionScope, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = false, ElapsedMilliseconds = TraceLogger.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
             }
 
             if (this.Listeners != null && this.Listeners.Count > 0)
@@ -277,9 +188,9 @@ namespace Common
                 {
                     try
                     {
-                        if (!TraceLogger._lockListenersNotifications.Value)
+                        if (!TraceLogger._lockListenersNotifications.Value) //  && _logger != null
                         {
-                            listener.Log(logLevel, eventId, entry, exception, this.formatTraceEntryDefault);
+                            listener.Log(logLevel, eventId, entry, exception, Provider.formatTraceEntryDefault);
                             //if (state is TraceEntry) { }
                             //listener.Log(logLevel, eventId, state, exception, formatter);
                         }
@@ -299,8 +210,378 @@ namespace Common
         }
 
         // helpers
+        public static string GetMethodName([CallerMemberName] string memberName = "") { return memberName; }
+        public static SectionScope BeginMethodScope<T>(object payload = null, SourceLevels sourceLevel = SourceLevels.Verbose, LogLevel LogLevel = LogLevel.Trace, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        {
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+
+            ILogger<T> logger = null;
+            if (logger == null && TraceLogger.Host != null)
+            {
+                var host = TraceLogger.Host;
+                logger = host.Services.GetRequiredService<ILogger<T>>();
+            }
+
+            var sec = new SectionScope(logger, typeof(T), null, payload, TraceLogger.TraceSource, sourceLevel, LogLevel.Information, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber);
+            var stopTicks = TraceLogger.Stopwatch.ElapsedTicks;
+            var delta = stopTicks - startTicks;
+            return sec;
+        }
+        public static SectionScope BeginMethodScope(Type t, object payload = null, SourceLevels sourceLevel = SourceLevels.Verbose, LogLevel LogLevel = LogLevel.Trace, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        {
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+
+            ILogger logger = null;
+            if (TraceLogger.Host != null)
+            {
+                Type loggerType = typeof(ILogger<>);
+                loggerType = loggerType.MakeGenericType(new[] { t });
+                var host = TraceLogger.Host;
+                logger = host.Services.GetRequiredService(loggerType) as ILogger;
+            }
+
+            var sec = new SectionScope(logger, t, null, payload, TraceLogger.TraceSource, sourceLevel, LogLevel.Information, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber);
+            var stopTicks = TraceLogger.Stopwatch.ElapsedTicks;
+            var delta = stopTicks - startTicks;
+            return sec;
+        }
+
+        public static IConfiguration GetConfiguration()
+        {
+            IConfiguration configuration = null;
+            var jsonFileName = "appsettings";
+            var currentDirectory = Directory.GetCurrentDirectory();
+            var appdomainFolder = System.AppDomain.CurrentDomain.BaseDirectory.Trim('\\');
+
+            var environment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.ToLower();
+            if (string.IsNullOrEmpty(environment)) { environment = System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")?.ToLower(); }
+            if (string.IsNullOrEmpty(environment)) { environment = System.Environment.GetEnvironmentVariable("ENVIRONMENT")?.ToLower(); }
+            if (string.IsNullOrEmpty(environment)) { environment = "production"; }
+
+            var jsonFile = currentDirectory == appdomainFolder ? $"{jsonFileName}.json" : Path.Combine(appdomainFolder, $"{jsonFileName}.json");
+            var builder = default(IConfigurationBuilder);
+            DebugHelper.IfDebug(() =>
+            {   // for debug build only check environment setting on appsettings.json
+                builder = new ConfigurationBuilder()
+                              .AddJsonFile(jsonFile, true, true)
+                              .AddInMemoryCollection();
+
+                builder.AddEnvironmentVariables();
+                configuration = builder.Build();
+                var jsonEnvironment = configuration.GetValue($"AppSettings:Environment", "");
+                if (string.IsNullOrEmpty(jsonEnvironment)) { environment = jsonEnvironment; }
+            });
+
+            var environmentJsonFile = currentDirectory == appdomainFolder ? $"{jsonFileName}.json" : Path.Combine(appdomainFolder, $"{jsonFileName}.{environment}.json");
+            builder = new ConfigurationBuilder()
+                      .AddJsonFile(jsonFile, true, true);
+            if (File.Exists(environmentJsonFile)) { builder = builder.AddJsonFile(environmentJsonFile, true, true); }
+            builder = builder.AddInMemoryCollection();
+            builder.AddEnvironmentVariables();
+            configuration = builder.Build();
+
+            TraceLogger.EnvironmentName = environment;
+
+            return configuration;
+        }
+    }
+    public static class TraceLoggerExtensions
+    {
+        public static SectionScope BeginMethodScope<T>(this ILogger<T> logger, object payload = null, SourceLevels sourceLevel = SourceLevels.Verbose, LogLevel LogLevel = LogLevel.Trace, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        {
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+
+            if (logger == null && TraceLogger.Host != null)
+            {
+                var host = TraceLogger.Host;
+                logger = host.Services.GetRequiredService<ILogger<T>>();
+            }
+
+            var sec = new SectionScope(logger, typeof(T), null, payload, TraceLogger.TraceSource, sourceLevel, LogLevel.Information, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber);
+            var stopTicks = TraceLogger.Stopwatch.ElapsedTicks;
+            var delta = stopTicks - startTicks;
+            return sec;
+        }
+
+        public static void Start(this ILogger logger, IHost Host)
+        {
+            TraceLogger.Host = Host;
+            return;
+        }
+
+        //public static SectionScope BeginMethodScope(Type t, object payload = null, SourceLevels sourceLevel = SourceLevels.Verbose, LogLevel LogLevel = LogLevel.Trace, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        //{
+        //    var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+
+        //    var host = (App.Current as App).Host;
+        //    var logger = host.Services.GetRequiredService<ILogger<MainWindow>>();
+        //    ILogger logger
+
+        //    var sec = new SectionScope(logger, typeof(T), null, payload, TraceLogger.TraceSource, sourceLevel, LogLevel.Information, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber);
+        //    var stopTicks = TraceLogger.Stopwatch.ElapsedTicks;
+        //    var delta = stopTicks - startTicks;
+        //    return sec;
+        //}
+
+        public static void Debug<T>(this ILogger<T> logger, object obj, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        {
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+            var type = typeof(Application);
+            SectionScope caller = SectionScope.Current.Value as SectionScope;
+            SectionScope innerSectionScope = caller != null ? caller = caller.GetInnerScope() : caller = new SectionScope(logger, typeof(T), null, null, null, SourceLevels.Verbose, LogLevel.Debug, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
+            innerSectionScope.LogDebug(obj, category, properties, source);
+        }
+        public static void Debug<T>(this ILogger<T> logger, NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        {
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+            var type = typeof(Application);
+            SectionScope caller = SectionScope.Current.Value as SectionScope;
+            SectionScope innerSectionScope = caller != null ? caller = caller.GetInnerScope() : caller = new SectionScope(logger, typeof(T), null, null, null, SourceLevels.Verbose, LogLevel.Debug, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
+            innerSectionScope.LogDebug(message, category, properties, source);
+        }
+        public static void Debug<T>(this ILogger<T> logger, FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        {
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+            var type = typeof(Application);
+            SectionScope caller = SectionScope.Current.Value as SectionScope;
+            SectionScope innerSectionScope = caller != null ? caller = caller.GetInnerScope() : caller = new SectionScope(logger, typeof(T), null, null, null, SourceLevels.Verbose, LogLevel.Debug, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
+            innerSectionScope.LogDebug(message, category, properties, source);
+        }
+        public static void Information<T>(this ILogger<T> logger, NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        {
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+            var type = typeof(Application);
+            SectionScope caller = SectionScope.Current.Value as SectionScope;
+            SectionScope innerSectionScope = caller != null ? caller = caller.GetInnerScope() : caller = new SectionScope(logger, typeof(T), null, null, null, SourceLevels.Information, LogLevel.Information, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
+            innerSectionScope.LogInformation(message, category, properties, source);
+        }
+        public static void Information<T>(this ILogger<T> logger, FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        {
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+            var type = typeof(Application);
+            SectionScope caller = SectionScope.Current.Value as SectionScope;
+            SectionScope innerSectionScope = caller != null ? caller = caller.GetInnerScope() : caller = new SectionScope(logger, typeof(T), null, null, null, SourceLevels.Information, LogLevel.Information, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
+            innerSectionScope.LogInformation(message, category, properties, source);
+        }
+        public static void Warning<T>(this ILogger<T> logger, NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        {
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+            var type = typeof(Application);
+            SectionScope caller = SectionScope.Current.Value as SectionScope;
+            SectionScope innerSectionScope = caller != null ? caller = caller.GetInnerScope() : caller = new SectionScope(logger, typeof(T), null, null, null, SourceLevels.Warning, LogLevel.Warning, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
+            innerSectionScope.LogWarning(message, category, properties, source);
+        }
+        public static void Warning<T>(this ILogger<T> logger, FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        {
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+            var type = typeof(Application);
+            SectionScope caller = SectionScope.Current.Value as SectionScope;
+            SectionScope innerSectionScope = caller != null ? caller = caller.GetInnerScope() : caller = new SectionScope(logger, typeof(T), null, null, null, SourceLevels.Warning, LogLevel.Warning, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
+            innerSectionScope.LogWarning(message, category, properties, source);
+        }
+        public static void Error<T>(this ILogger<T> logger, NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        {
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+            var type = typeof(Application);
+            SectionScope caller = SectionScope.Current.Value as SectionScope;
+            SectionScope innerSectionScope = caller != null ? caller = caller.GetInnerScope() : caller = new SectionScope(logger, typeof(T), null, null, null, SourceLevels.Error, LogLevel.Error, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
+            innerSectionScope.LogError(message, category, properties, source);
+        }
+        public static void Error<T>(this ILogger<T> logger, FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        {
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+            var type = typeof(Application);
+            SectionScope caller = SectionScope.Current.Value as SectionScope;
+            SectionScope innerSectionScope = caller != null ? caller = caller.GetInnerScope() : caller = new SectionScope(logger, typeof(T), null, null, null, SourceLevels.Error, LogLevel.Error, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
+            innerSectionScope.LogError(message, category, properties, source);
+        }
+        public static void Exception<T>(this ILogger<T> logger, Exception exception, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+        {
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+            var type = typeof(Application);
+            SectionScope caller = SectionScope.Current.Value as SectionScope;
+            SectionScope innerSectionScope = caller != null ? caller = caller.GetInnerScope() : caller = new SectionScope(logger, typeof(T), null, null, null, SourceLevels.Error, LogLevel.Error, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
+            innerSectionScope.LogException(exception, category, properties, source);
+        }
+
+        public static ILoggingBuilder AddDiginsight(this ILoggingBuilder builder, ILoggerProvider logProvider, IConfiguration config = null, string configurationPrefix = null) // , IServiceProvider serviceProvider
+        {
+            TraceLogger.Init(config);
+
+            var traceLoggerProvider = new TraceLoggerProvider() { ConfigurationSuffix = configurationPrefix };
+            traceLoggerProvider.AddProvider(logProvider);
+
+            builder.AddProvider(traceLoggerProvider);
+            return builder;
+        }
+    }
+    public static class TraceLoggerFactoryExtensions
+    {
+        public static ILoggerFactory AddDiginsight(this ILoggerFactory factory, IServiceProvider serviceProvider, LogLevel minLevel)
+        {
+            return null;
+        }
+    }
+    public class TraceLoggerProvider : ILoggerProvider
+    {
+        #region const
+        public const string CONFIGSETTING_CRREPLACE = "CRReplace"; public const string CONFIGDEFAULT_CRREPLACE = "\\r";
+        public const string CONFIGSETTING_LFREPLACE = "LFReplace"; public const string CONFIGDEFAULT_LFREPLACE = "\\n";
+        public const string CONFIGSETTING_TIMESTAMPFORMAT = "TimestampFormat"; public const string CONFIGDEFAULT_TIMESTAMPFORMAT = "HH:mm:ss.fff"; // dd/MM/yyyy 
+        public const string CONFIGSETTING_FLUSHONWRITE = "FlushOnWrite"; public const bool CONFIGDEFAULT_FLUSHONWRITE = false;
+        public const string CONFIGSETTING_SHOWNESTEDFLOW = "ShowNestedFlow"; public const bool CONFIGDEFAULT_SHOWNESTEDFLOW = false;
+        public const string CONFIGSETTING_SHOWTRACECOST = "ShowTraceCost"; public const bool CONFIGDEFAULT_SHOWTRACECOST = false;
+        public const string CONFIGSETTING_MAXMESSAGELEVEL = "MaxMessageLevel"; public const int CONFIGDEFAULT_MAXMESSAGELEVEL = 3;
+        public const string CONFIGSETTING_MAXMESSAGELEN = "MaxMessageLen"; public const int CONFIGDEFAULT_MAXMESSAGELEN = 256;
+        public const string CONFIGSETTING_MAXMESSAGELENINFO = "MaxMessageLenInfo"; public const int CONFIGDEFAULT_MAXMESSAGELENINFO = 512;
+        public const string CONFIGSETTING_MAXMESSAGELENWARNING = "MaxMessageLenWarning"; public const int CONFIGDEFAULT_MAXMESSAGELENWARNING = 1024;
+        public const string CONFIGSETTING_MAXMESSAGELENERROR = "MaxMessageLenError"; public const int CONFIGDEFAULT_MAXMESSAGELENERROR = -1;
+        public const string CONFIGSETTING_PROCESSNAMEPADDING = "ProcessNamePadding"; public const int CONFIGDEFAULT_PROCESSNAMEPADDING = 15;
+        public const string CONFIGSETTING_SOURCEPADDING = "SourcePadding"; public const int CONFIGDEFAULT_SOURCEPADDING = 5;
+        public const string CONFIGSETTING_CATEGORYPADDING = "CategoryPadding"; public const int CONFIGDEFAULT_CATEGORYPADDING = 5;
+        public const string CONFIGSETTING_SOURCELEVELPADDING = "SourceLevelPadding"; public const int CONFIGDEFAULT_SOURCELEVELPADDING = 11;
+        public const string CONFIGSETTING_DELTAPADDING = "DeltaPadding"; public const int CONFIGDEFAULT_DELTAPADDING = 5;
+        public const string CONFIGSETTING_LASTWRITECONTINUATIONENABLED = "LastWriteContinuationEnabled"; public const bool CONFIGDEFAULT_LASTWRITECONTINUATIONENABLED = false;
+
+        public const string CONFIGSETTING_TRACEMESSAGEFORMATPREFIX = "TraceMessageFormatPrefix"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATPREFIX = "[{now}] {source} {category} {tidpid} - {sourceLevel} - {lastLineDeltaPadded} {deltaPadded} {nesting} {messageNesting}";
+        public const string CONFIGSETTING_TRACEMESSAGEFORMAT = "TraceMessageFormat"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMAT = "[{now}] {source} {category} {tidpid} - {sourceLevel} - {lastLineDeltaPadded} {deltaPadded} {nesting} {messageNesting}{message}";
+        public const string CONFIGSETTING_TRACEMESSAGEFORMATVERBOSE = "TraceMessageFormatVerbose"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATVERBOSE = null;
+        public const string CONFIGSETTING_TRACEMESSAGEFORMATINFORMATION = "TraceMessageFormatInformation"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATINFORMATION = null;
+        public const string CONFIGSETTING_TRACEMESSAGEFORMATWARNING = "TraceMessageFormatWarning"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATWARNING = null;
+        public const string CONFIGSETTING_TRACEMESSAGEFORMATERROR = "TraceMessageFormatError"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATERROR = null;
+        public const string CONFIGSETTING_TRACEMESSAGEFORMATCRITICAL = "TraceMessageFormatCritical"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATCRITICAL = null;
+        public const string CONFIGSETTING_TRACEMESSAGEFORMATSTART = "TraceMessageFormatStart"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATSTART = "[{now}] {source} {category} {tidpid} - {sourceLevel} - {lastLineDeltaPadded} {deltaPadded} {nesting} {messageNesting}{message}";
+        public const string CONFIGSETTING_TRACEMESSAGEFORMATSTOP = "TraceMessageFormatStop"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATSTOP = "[{now}] {source} {category} {tidpid} - {sourceLevel} - {lastLineDeltaPadded} {deltaPadded} {nesting} {messageNesting}{message}{result}";
+        public const string CONFIGSETTING_TRACEMESSAGEFORMATINLINESTOP = "TraceMessageFormatInlineStop"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATINLINESTOP = "... END ({delta} secs){result}";
+        public const string CONFIGSETTING_TRACEMESSAGEFORMATSUSPEND = "TraceMessageFormatSuspend"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATSUSPEND = null;
+        public const string CONFIGSETTING_TRACEMESSAGEFORMATRESUME = "TraceMessageFormatResume"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATRESUME = null;
+        public const string CONFIGSETTING_TRACEMESSAGEFORMATTRANSFER = "TraceMessageFormatTransfer"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATTRANSFER = null;
+        #endregion
+        #region internal state
+        private static Type T = typeof(TraceLogger);
+        private static readonly string _traceSourceName = "TraceSource";
+        public static Func<string, string> CRLF2Space = (string s) => { return s?.Replace("\r", " ")?.Replace("\n", " "); };
+        public static Func<string, string> CRLF2Encode = (string s) => { return s?.Replace("\r", "\\r")?.Replace("\n", "\\n"); };
+        public string Name { get; set; }
+        public string ConfigurationSuffix { get; set; }
+        bool _lastWriteContinuationEnabled;
+        public string _CRReplace, _LFReplace;
+        public string _timestampFormat;
+        public bool _showNestedFlow, _showTraceCost, _flushOnWrite;
+        public int _processNamePadding, _sourcePadding, _categoryPadding, _sourceLevelPadding, _deltaPadding, _traceDeltaPadding, _traceMessageFormatPrefixLen;
+        public string _traceMessageFormatPrefix, _traceMessageFormat, _traceMessageFormatVerbose, _traceMessageFormatInformation, _traceMessageFormatWarning, _traceMessageFormatError, _traceMessageFormatCritical;
+        public string _traceMessageFormatStart, _traceMessageFormatStop, _traceMessageFormatInlineStop, _traceMessageFormatSuspend, _traceMessageFormatResume, _traceMessageFormatTransfer;
+        public string _traceDeltaDefault;
+        public TraceEventType _allowedEventTypes = TraceEventType.Critical | TraceEventType.Error | TraceEventType.Warning | TraceEventType.Information | TraceEventType.Verbose | TraceEventType.Start | TraceEventType.Stop | TraceEventType.Suspend | TraceEventType.Resume | TraceEventType.Transfer;
+        TraceEntry lastWrite = default(TraceEntry);
+        ILoggerProvider _provider;
+
+
+        public static ConcurrentDictionary<string, object> Properties { get; set; } = new ConcurrentDictionary<string, object>();
+        public IList<ILogger> Listeners { get; } = new List<ILogger>();
+        #endregion
+
+        public void AddProvider(ILoggerProvider provider)
+        {
+            using (var scope = TraceLogger.BeginMethodScope<TraceLoggerProvider>())
+            {
+                if (string.IsNullOrEmpty(ConfigurationSuffix))
+                {
+                    var prefix = provider?.GetType()?.Name?.Split('.')?.Last();
+                    this.ConfigurationSuffix = prefix;
+                }
+
+                _CRReplace = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, string>(CONFIGSETTING_CRREPLACE, CONFIGDEFAULT_CRREPLACE, CultureInfo.InvariantCulture, this.ConfigurationSuffix);
+                _LFReplace = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, string>(CONFIGSETTING_LFREPLACE, CONFIGDEFAULT_LFREPLACE, CultureInfo.InvariantCulture, this.ConfigurationSuffix);  // ConfigurationHelper.GetSetting<int>(CONFIGSETTING_LFREPLACE, CONFIGDEFAULT_LFREPLACE);
+                _timestampFormat = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, string>(CONFIGSETTING_TIMESTAMPFORMAT, CONFIGDEFAULT_TIMESTAMPFORMAT, CultureInfo.InvariantCulture, this.ConfigurationSuffix);  // ConfigurationHelper.GetSetting<int>(CONFIGSETTING_TIMESTAMPFORMAT, CONFIGDEFAULT_TIMESTAMPFORMAT);
+                _showNestedFlow = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, bool>(CONFIGSETTING_SHOWNESTEDFLOW, CONFIGDEFAULT_SHOWNESTEDFLOW, CultureInfo.InvariantCulture, this.ConfigurationSuffix);
+                _showTraceCost = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, bool>(CONFIGSETTING_SHOWTRACECOST, CONFIGDEFAULT_SHOWTRACECOST, CultureInfo.InvariantCulture, this.ConfigurationSuffix);
+                _flushOnWrite = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, bool>(CONFIGSETTING_FLUSHONWRITE, CONFIGDEFAULT_FLUSHONWRITE, CultureInfo.InvariantCulture, this.ConfigurationSuffix);
+                _processNamePadding = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, int>(CONFIGSETTING_PROCESSNAMEPADDING, CONFIGDEFAULT_PROCESSNAMEPADDING, CultureInfo.InvariantCulture, this.ConfigurationSuffix);
+                _sourcePadding = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, int>(CONFIGSETTING_SOURCEPADDING, CONFIGDEFAULT_SOURCEPADDING, CultureInfo.InvariantCulture, this.ConfigurationSuffix);
+                _categoryPadding = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, int>(CONFIGSETTING_CATEGORYPADDING, CONFIGDEFAULT_CATEGORYPADDING, CultureInfo.InvariantCulture, this.ConfigurationSuffix);
+                _sourceLevelPadding = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, int>(CONFIGSETTING_SOURCELEVELPADDING, CONFIGDEFAULT_SOURCELEVELPADDING, CultureInfo.InvariantCulture, this.ConfigurationSuffix);
+                _deltaPadding = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, int>(CONFIGSETTING_DELTAPADDING, CONFIGDEFAULT_DELTAPADDING, CultureInfo.InvariantCulture, this.ConfigurationSuffix);
+                _lastWriteContinuationEnabled = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, bool>(CONFIGSETTING_LASTWRITECONTINUATIONENABLED, CONFIGDEFAULT_LASTWRITECONTINUATIONENABLED, CultureInfo.InvariantCulture, this.ConfigurationSuffix);
+                _traceMessageFormatPrefix = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, string>(CONFIGSETTING_TRACEMESSAGEFORMATPREFIX, CONFIGDEFAULT_TRACEMESSAGEFORMATPREFIX, CultureInfo.InvariantCulture, this.ConfigurationSuffix);
+                _traceMessageFormat = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, string>(CONFIGSETTING_TRACEMESSAGEFORMAT, CONFIGDEFAULT_TRACEMESSAGEFORMAT, CultureInfo.InvariantCulture, this.ConfigurationSuffix);
+                _traceMessageFormatVerbose = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, string>(CONFIGSETTING_TRACEMESSAGEFORMATVERBOSE, CONFIGDEFAULT_TRACEMESSAGEFORMATVERBOSE, CultureInfo.InvariantCulture, this.ConfigurationSuffix); if (string.IsNullOrEmpty(_traceMessageFormatVerbose)) { _traceMessageFormatVerbose = _traceMessageFormat; }
+                _traceMessageFormatInformation = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, string>(CONFIGSETTING_TRACEMESSAGEFORMATINFORMATION, CONFIGDEFAULT_TRACEMESSAGEFORMATINFORMATION, CultureInfo.InvariantCulture, this.ConfigurationSuffix); if (string.IsNullOrEmpty(_traceMessageFormatInformation)) { _traceMessageFormatInformation = _traceMessageFormat; }
+                _traceMessageFormatWarning = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, string>(CONFIGSETTING_TRACEMESSAGEFORMATWARNING, CONFIGDEFAULT_TRACEMESSAGEFORMATWARNING, CultureInfo.InvariantCulture, this.ConfigurationSuffix); if (string.IsNullOrEmpty(_traceMessageFormatWarning)) { _traceMessageFormatWarning = _traceMessageFormat; }
+                _traceMessageFormatError = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, string>(CONFIGSETTING_TRACEMESSAGEFORMATERROR, CONFIGDEFAULT_TRACEMESSAGEFORMATERROR, CultureInfo.InvariantCulture, this.ConfigurationSuffix); if (string.IsNullOrEmpty(_traceMessageFormatError)) { _traceMessageFormatError = _traceMessageFormat; }
+                _traceMessageFormatCritical = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, string>(CONFIGSETTING_TRACEMESSAGEFORMATCRITICAL, CONFIGDEFAULT_TRACEMESSAGEFORMATCRITICAL, CultureInfo.InvariantCulture, this.ConfigurationSuffix); if (string.IsNullOrEmpty(_traceMessageFormatCritical)) { _traceMessageFormatCritical = _traceMessageFormat; }
+                _traceMessageFormatStart = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, string>(CONFIGSETTING_TRACEMESSAGEFORMATSTART, CONFIGDEFAULT_TRACEMESSAGEFORMATSTART, CultureInfo.InvariantCulture, this.ConfigurationSuffix); if (string.IsNullOrEmpty(_traceMessageFormatStart)) { _traceMessageFormatStart = _traceMessageFormat; }
+                _traceMessageFormatStop = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, string>(CONFIGSETTING_TRACEMESSAGEFORMATSTOP, CONFIGDEFAULT_TRACEMESSAGEFORMATSTOP, CultureInfo.InvariantCulture, this.ConfigurationSuffix); if (string.IsNullOrEmpty(_traceMessageFormatStop)) { _traceMessageFormatStop = _traceMessageFormat; }
+                _traceMessageFormatInlineStop = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, string>(CONFIGSETTING_TRACEMESSAGEFORMATINLINESTOP, CONFIGDEFAULT_TRACEMESSAGEFORMATINLINESTOP, CultureInfo.InvariantCulture, this.ConfigurationSuffix); // if (string.IsNullOrEmpty(_traceMessageFormatInlineStop)) { _traceMessageFormatInlineStop = _traceMessageFormat; }
+                _traceMessageFormatSuspend = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, string>(CONFIGSETTING_TRACEMESSAGEFORMATSUSPEND, CONFIGDEFAULT_TRACEMESSAGEFORMATSUSPEND, CultureInfo.InvariantCulture, this.ConfigurationSuffix); if (string.IsNullOrEmpty(_traceMessageFormatSuspend)) { _traceMessageFormatSuspend = _traceMessageFormat; }
+                _traceMessageFormatResume = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, string>(CONFIGSETTING_TRACEMESSAGEFORMATRESUME, CONFIGDEFAULT_TRACEMESSAGEFORMATRESUME, CultureInfo.InvariantCulture, this.ConfigurationSuffix); if (string.IsNullOrEmpty(_traceMessageFormatResume)) { _traceMessageFormatResume = _traceMessageFormat; }
+                _traceMessageFormatTransfer = ConfigurationHelper.GetClassSetting<TraceLoggerProvider, string>(CONFIGSETTING_TRACEMESSAGEFORMATTRANSFER, CONFIGDEFAULT_TRACEMESSAGEFORMATTRANSFER, CultureInfo.InvariantCulture, this.ConfigurationSuffix); if (string.IsNullOrEmpty(_traceMessageFormatTransfer)) { _traceMessageFormatTransfer = _traceMessageFormat; }
+
+                var thicksPerMillisecond = TraceLogger.Stopwatch.ElapsedTicks / TraceLogger.Stopwatch.ElapsedMilliseconds;
+                string fileName = null, workingDirectory = null;
+                try { fileName = TraceLogger.CurrentProcess?.StartInfo?.FileName; } catch { };
+                try { workingDirectory = TraceLogger.CurrentProcess.StartInfo.WorkingDirectory; } catch { };
+
+                scope.LogInformation($"Starting TraceLoggerProvider for: ProcessName: '{TraceLogger.ProcessName}', ProcessId: '{TraceLogger.ProcessId}', FileName: '{fileName}', WorkingDirectory: '{workingDirectory}', EntryAssemblyFullName: '{TraceLogger.EntryAssembly?.FullName}', ImageRuntimeVersion: '{TraceLogger.EntryAssembly?.ImageRuntimeVersion}', Location: '{TraceLogger.EntryAssembly?.Location}', thicksPerMillisecond: '{thicksPerMillisecond}'{Environment.NewLine}"); // "init"
+                // scope.LogDebug($"_filter '{_filter}', _categoryFilter '{_categoryFilter}', _allowedEventTypes '{_allowedEventTypes}', _showNestedFlow '{_showNestedFlow}', _flushOnWrite '{_flushOnWrite}', _cRReplace '{_CRReplace}', _lFReplace '{_LFReplace}', _timestampFormat '{_timestampFormat}'{Environment.NewLine}"); // "init"
+                scope.LogDebug($"_processNamePadding '{_processNamePadding}', _sourcePadding '{_sourcePadding}', _categoryPadding '{_categoryPadding}', _sourceLevelPadding '{_sourceLevelPadding}'{Environment.NewLine}"); // "init"
+                scope.LogDebug($"_traceMessageFormat '{_traceMessageFormat}', _traceMessageFormatVerbose '{_traceMessageFormatVerbose}', _traceMessageFormatWarning '{_traceMessageFormatWarning}', _traceMessageFormatError '{_traceMessageFormatError}', _traceMessageFormatCritical '{_traceMessageFormatCritical}', _traceMessageFormatStart '{_traceMessageFormatStart}', _traceMessageFormatStop '{_traceMessageFormatStop}, _traceMessageFormatInlineStop '{_traceMessageFormatInlineStop}'{Environment.NewLine}"); // "init"
+
+                if (!string.IsNullOrEmpty(_traceMessageFormatPrefix))
+                {
+                    _traceMessageFormat = _traceMessageFormat.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatVerbose = _traceMessageFormatVerbose.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatInformation = _traceMessageFormatInformation.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatWarning = _traceMessageFormatWarning.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatError = _traceMessageFormatError.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatCritical = _traceMessageFormatCritical.Substring(_traceMessageFormatPrefix.Length);
+
+                    _traceMessageFormatStart = _traceMessageFormatStart.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatStop = _traceMessageFormatStop.Substring(_traceMessageFormatPrefix.Length);
+                    //_traceMessageFormatInlineStop = _traceMessageFormatInlineStop.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatSuspend = _traceMessageFormatSuspend.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatResume = _traceMessageFormatResume.Substring(_traceMessageFormatPrefix.Length);
+                    _traceMessageFormatTransfer = _traceMessageFormatTransfer.Substring(_traceMessageFormatPrefix.Length);
+                }
+
+                int i = 0;
+                var variables = "now, processName, source, category, tidpid, sourceLevel, nesting, message, lastLineDelta, lastLineDeltaPadded, delta, deltaPadded, result, messageNesting".Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries).Select((s) => new { name = s, position = i++ }).ToList();
+                variables.ForEach(v =>
+                {
+                    _traceMessageFormatPrefix = _traceMessageFormatPrefix.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormat = _traceMessageFormat.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatVerbose = _traceMessageFormatVerbose.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatInformation = _traceMessageFormatInformation.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatWarning = _traceMessageFormatWarning.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatError = _traceMessageFormatError.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatCritical = _traceMessageFormatCritical.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+
+                    _traceMessageFormatStart = _traceMessageFormatStart.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatStop = _traceMessageFormatStop.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatInlineStop = _traceMessageFormatInlineStop.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatSuspend = _traceMessageFormatSuspend.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatResume = _traceMessageFormatResume.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                    _traceMessageFormatTransfer = _traceMessageFormatTransfer.Replace($"{{{v.name}}}", $"{{{v.position}}}");
+                });
+                _provider = provider;
+            }
+        }
+        public ILogger CreateLogger(string categoryName)
+        {
+            var innerLogger = _provider.CreateLogger(categoryName);
+            var logger = new TraceLogger(this, categoryName); // TODO: use provider to get config
+            logger.Listeners.Add(innerLogger);
+
+            return logger;
+        }
+        public void Dispose()
+        {
+            ;
+        }
+
+
         #region GetMaxMessageLen
-        public static int? GetMaxMessageLen(CodeSection section, TraceEventType traceEventType)
+        public static int? GetMaxMessageLen(SectionScope section, TraceEventType traceEventType)
         {
             var maxMessageLenSpecific = default(int?);
             switch (traceEventType)
@@ -388,7 +669,7 @@ namespace Common
             string category = entry.Category ?? "general";
             var processName = TraceLogger.ProcessName + ".exe";
             var source = entry.Source ?? "";
-            var codeSection = entry.CodeSection;
+            var codeSection = entry.SectionScope;
             if (processName != null && processName.Length < _processNamePadding) { processName = processName.PadRight(_processNamePadding); }
             if (source != null && source.Length < _sourcePadding) { source = source.PadRight(_sourcePadding); }
             if (source.Length > _sourcePadding) { _sourcePadding = source.Length; }
@@ -399,7 +680,7 @@ namespace Common
             if (sourceLevel.Length > _sourceLevelPadding) { _sourceLevelPadding = sourceLevel.Length; }
 
             var tidpid = string.Format("{0,5} {1,4} {2}", TraceLogger.ProcessId, entry.ThreadID, entry.ApartmentState);
-            var maxMessageLen = TraceLogger.GetMaxMessageLen(codeSection, entry.TraceEventType);
+            var maxMessageLen = TraceLoggerProvider.GetMaxMessageLen(codeSection, entry.TraceEventType);
 
             var message = codeSection.IsInnerScope ? "... " + getEntryMessageRaw(entry) : getEntryMessageRaw(entry);
             if (maxMessageLen > 0 && message != null && message.Length > maxMessageLen) { message = message.Substring(0, maxMessageLen.Value - 3) + "..."; }
@@ -411,7 +692,7 @@ namespace Common
             var delta = ""; var lastLineDelta = ""; var lastLineDeltaSB = new StringBuilder();
             var deltaPadded = ""; var lastLineDeltaPadded = "";
             var resultString = "";
-            var messageNesting = _showNestedFlow ? new string(' ', entry.CodeSection != null ? entry.CodeSection.NestingLevel * 2 : 0) : "";
+            var messageNesting = _showNestedFlow ? new string(' ', entry.SectionScope != null ? entry.SectionScope.NestingLevel * 2 : 0) : "";
 
             lastLineDeltaPadded = lastLineDelta = getLastLineDeltaOptimized(entry, lastWrite); // .PadLeft(5)
             if (lastLineDeltaPadded != null && lastLineDeltaPadded.Length < _deltaPadding) { lastLineDeltaPadded = lastLineDeltaPadded.PadLeft(_deltaPadding); }
@@ -465,7 +746,7 @@ namespace Common
                     if (deltaPadded.Length > _deltaPadding) { _deltaPadding = deltaPadded.Length; }
 
                     var traceMessageFormat = _traceMessageFormatStop;
-                    if (_lastWriteContinuationEnabled == true && lastWrite.CodeSection == codeSection && lastWrite.TraceEventType == TraceEventType.Start)
+                    if (_lastWriteContinuationEnabled == true && lastWrite.SectionScope == codeSection && lastWrite.TraceEventType == TraceEventType.Start)
                     {
                         isLastWriteContinuation = true;
                         traceMessageFormat = _traceMessageFormatInlineStop;
@@ -508,7 +789,7 @@ namespace Common
             var requestInfo = entry.RequestContext;
             var dept = requestInfo != null ? requestInfo.RequestDept : 0;
 
-            var section = entry.CodeSection;
+            var section = entry.SectionScope;
             var showNestedFlow = _showNestedFlow;
             string deptString = $"{dept}.{(section != null ? section.NestingLevel : 0)}".PadLeftExact(4, ' ');
             // if (showNestedFlow == false) { return deptString; }
@@ -553,212 +834,9 @@ namespace Common
             }
             return lastLineDeltaSB.ToString();
         }
-        public static string GetMethodName([CallerMemberName] string memberName = "") { return memberName; }
-        public static IConfiguration GetConfiguration()
-        {
-            IConfiguration configuration = null;
-            var jsonFileName = "appsettings";
-            var currentDirectory = Directory.GetCurrentDirectory();
-            var appdomainFolder = System.AppDomain.CurrentDomain.BaseDirectory.Trim('\\');
-
-            var environment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.ToLower();
-            if (string.IsNullOrEmpty(environment)) { environment = System.Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")?.ToLower(); }
-            if (string.IsNullOrEmpty(environment)) { environment = System.Environment.GetEnvironmentVariable("ENVIRONMENT")?.ToLower(); }
-            if (string.IsNullOrEmpty(environment)) { environment = "production"; }
-
-            var jsonFile = currentDirectory == appdomainFolder ? $"{jsonFileName}.json" : Path.Combine(appdomainFolder, $"{jsonFileName}.json");
-            var builder = default(IConfigurationBuilder);
-            DebugHelper.IfDebug(() =>
-            {   // for debug build only check environment setting on appsettings.json
-                builder = new ConfigurationBuilder()
-                              .AddJsonFile(jsonFile, true, true)
-                              .AddInMemoryCollection();
-
-                builder.AddEnvironmentVariables();
-                configuration = builder.Build();
-                var jsonEnvironment = configuration.GetValue($"AppSettings:Environment", "");
-                if (string.IsNullOrEmpty(jsonEnvironment)) { environment = jsonEnvironment; }
-            });
-
-            var environmentJsonFile = currentDirectory == appdomainFolder ? $"{jsonFileName}.json" : Path.Combine(appdomainFolder, $"{jsonFileName}.{environment}.json");
-            builder = new ConfigurationBuilder()
-                      .AddJsonFile(jsonFile, true, true);
-            if (File.Exists(environmentJsonFile)) { builder = builder.AddJsonFile(environmentJsonFile, true, true); }
-            builder = builder.AddInMemoryCollection();
-            builder.AddEnvironmentVariables();
-            configuration = builder.Build();
-
-            TraceLogger.EnvironmentName = environment;
-
-            return configuration;
-        }
-
         #region Min
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         int Min(int a, int b) { return a < b ? a : b; }
         #endregion
-    }
-    public static class TraceLoggerExtensions
-    {
-        public static CodeSection BeginMethodScope<T>(this ILogger<T> logger, object payload = null, SourceLevels sourceLevel = SourceLevels.Verbose, LogLevel LogLevel = LogLevel.Trace, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
-        {
-            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-
-            var sec = new CodeSection(logger, null, payload, TraceLogger.TraceSource, sourceLevel, LogLevel.Information, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber);
-            var stopTicks = TraceLogger.Stopwatch.ElapsedTicks;
-            var delta = stopTicks - startTicks;
-            return sec;
-        }
-        //public static CodeSection GetCodeSection(Type t, object payload = null, SourceLevels sourceLevel = SourceLevels.Verbose, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
-        //{
-        //    var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-        //    var sec = new CodeSection(t, null, payload, TraceLogger.TraceSource, sourceLevel, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber);
-        //    return sec;
-        //}
-        //public static CodeSection GetCodeSection<T>(object payload = null, SourceLevels sourceLevel = SourceLevels.Verbose, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
-        //{
-        //    var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-        //    var sec = new CodeSection(typeof(T), null, payload, TraceLogger.TraceSource, sourceLevel, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber);
-        //    return sec;
-        //}
-        //public static CodeSection GetNamedSection<T>(this T pthis, string name = null, object payload = null, SourceLevels sourceLevel = SourceLevels.Verbose, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
-        //{
-        //    var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-        //    var sec = new CodeSection(typeof(T), name, payload, TraceLogger.TraceSource, sourceLevel, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber);
-        //    return sec;
-        //}
-        //public static CodeSection GetNamedSection(Type t, string name = null, object payload = null, SourceLevels sourceLevel = SourceLevels.Verbose, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
-        //{
-        //    var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-        //    var sec = new CodeSection(t, name, payload, TraceLogger.TraceSource, sourceLevel, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber);
-        //    return sec;
-        //}
-        //public static CodeSection GetNamedSection<T>(string name = null, object payload = null, SourceLevels sourceLevel = SourceLevels.Verbose, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
-        //{
-        //    var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-        //    var sec = new CodeSection(typeof(T), name, payload, TraceLogger.TraceSource, sourceLevel, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber);
-        //    return sec;
-        //}
-
-        public static void Debug(this ILogger logger, object obj, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
-        {
-            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-            var type = typeof(Application);
-            CodeSection caller = CodeSection.CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(logger, null, null, null, SourceLevels.Verbose, LogLevel.Debug, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
-            innerCodeSection.Debug(obj, category, properties, source);
-        }
-        public static void Debug(this ILogger logger, NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
-        {
-            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-            var type = typeof(Application);
-            CodeSection caller = CodeSection.CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(logger, null, null, null, SourceLevels.Verbose, LogLevel.Debug, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
-            innerCodeSection.Debug(message, category, properties, source);
-        }
-        public static void Debug(this ILogger logger, FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
-        {
-            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-            var type = typeof(Application);
-            CodeSection caller = CodeSection.CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(logger, null, null, null, SourceLevels.Verbose, LogLevel.Debug, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
-            innerCodeSection.Debug(message, category, properties, source);
-        }
-        public static void Information(this ILogger logger, NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
-        {
-            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-            var type = typeof(Application);
-            CodeSection caller = CodeSection.CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(logger, null, null, null, SourceLevels.Information, LogLevel.Information, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
-            innerCodeSection.Information(message, category, properties, source);
-        }
-        public static void Information(this ILogger logger, FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
-        {
-            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-            var type = typeof(Application);
-            CodeSection caller = CodeSection.CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(logger, null, null, null, SourceLevels.Information, LogLevel.Information, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
-            innerCodeSection.Information(message, category, properties, source);
-        }
-        public static void Warning(this ILogger logger, NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
-        {
-            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-            var type = typeof(Application);
-            CodeSection caller = CodeSection.CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(logger, null, null, null, SourceLevels.Warning, LogLevel.Warning, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
-            innerCodeSection.Warning(message, category, properties, source);
-        }
-        public static void Warning(this ILogger logger, FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
-        {
-            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-            var type = typeof(Application);
-            CodeSection caller = CodeSection.CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(logger, null, null, null, SourceLevels.Warning, LogLevel.Warning, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
-            innerCodeSection.Warning(message, category, properties, source);
-        }
-        public static void Error(this ILogger logger, NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
-        {
-            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-            var type = typeof(Application);
-            CodeSection caller = CodeSection.CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(logger, null, null, null, SourceLevels.Error, LogLevel.Error, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
-            innerCodeSection.Error(message, category, properties, source);
-        }
-        public static void Error(this ILogger logger, FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
-        {
-            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-            var type = typeof(Application);
-            CodeSection caller = CodeSection.CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(logger, null, null, null, SourceLevels.Error, LogLevel.Error, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
-            innerCodeSection.Error(message, category, properties, source);
-        }
-        public static void Exception(this ILogger logger, Exception exception, string category = null, IDictionary<string, object> properties = null, string source = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
-        {
-            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-            var type = typeof(Application);
-            CodeSection caller = CodeSection.CurrentCodeSection.Value as CodeSection;
-            CodeSection innerCodeSection = caller != null ? caller = caller.GetInnerCodeSection() : caller = new CodeSection(logger, null, null, null, SourceLevels.Error, LogLevel.Error, category, properties, source, startTicks, memberName, sourceFilePath, sourceLineNumber, true);
-            innerCodeSection.Exception(exception, category, properties, source);
-        }
-
-        public static ILoggingBuilder AddDiginsight(this ILoggingBuilder builder, ILoggerProvider loggerProvider, IConfiguration config = null)
-        {
-            TraceLogger.Init(config);
-
-            var loggerFormatterProvider = new LoggerFormatterProvider();
-            loggerFormatterProvider.AddProvider(loggerProvider);
-
-            builder.AddProvider(loggerFormatterProvider);
-            return builder;
-        }
-    }
-    public static class TraceLoggerFactoryExtensions
-    {
-        //public static ILoggerFactory AddApplicationInsights(this ILoggerFactory factory, IServiceProvider serviceProvider, LogLevel minLevel);
-        public static ILoggerFactory AddDiginsight(this ILoggerFactory factory, IServiceProvider serviceProvider, LogLevel minLevel)
-        {
-            return null;
-        }
-    }
-    public class LoggerFormatterProvider : ILoggerProvider
-    {
-        ILoggerProvider _provider;
-
-        // ILoggerFactory AddApplicationInsights()
-        public void AddProvider(ILoggerProvider provider)
-        {
-            _provider = provider;
-        }
-        public ILogger CreateLogger(string categoryName)
-        {
-            var innerLogger = _provider.CreateLogger(categoryName);
-            var logger = new TraceLogger(categoryName);
-            logger.Listeners.Add(innerLogger);
-
-            return logger;
-        }
-        public void Dispose()
-        {
-            ;
-        }
     }
 }
