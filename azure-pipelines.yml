@@ -9,6 +9,7 @@ trigger:
   paths:
     exclude:
     - Common.Diagnostics/Properties
+    - Common.Diagnostics.v2/Properties
     - Common.Diagnostics.Core/Properties
     - Common.Diagnostics.Full/Properties
     - Common.Diagnostics.Win/Properties
@@ -35,13 +36,14 @@ variables:
   allSolutions: './$(projectBaseName).sln' 
   packageFolder: $(projectBaseName).Package
   commonDiagnosticProj: ./$(projectBaseName)/$(projectBaseName).csproj
+  commonDiagnosticv2Proj: ./$(projectBaseName).v2/$(projectBaseName).v2.csproj
   commonDiagnosticCoreProj: ./$(projectBaseName).Core/$(projectBaseName).Core.csproj
   commonDiagnosticFullProj: ./$(projectBaseName).Full/$(projectBaseName).Full.csproj
   commonDiagnosticWinProj: ./$(projectBaseName).Win/$(projectBaseName).Win.csproj
   commonDiagnosticSerilogProj: ./$(projectBaseName).Serilog/$(projectBaseName).Serilog.csproj
   commonDiagnosticLog4netProj: ./$(projectBaseName).Log4net/$(projectBaseName).Log4net.csproj
   commonDiagnosticAppinsightsProj: ./$(projectBaseName).Appinsights/$(projectBaseName).Appinsights.csproj
-  allProjects: '**/@($(commonDiagnosticProj)|$(commonDiagnosticCoreProj)|$(commonDiagnosticFullProj)|$(commonDiagnosticWinProj)|$(commonDiagnosticSerilogProj)|$(commonDiagnosticLog4netProj)|$(commonDiagnosticAppinsightsProj))' 
+  allProjects: '**/@($(commonDiagnosticProj)|$(commonDiagnosticv2Proj)|$(commonDiagnosticCoreProj)|$(commonDiagnosticFullProj)|$(commonDiagnosticWinProj)|$(commonDiagnosticSerilogProj)|$(commonDiagnosticLog4netProj)|$(commonDiagnosticAppinsightsProj))' 
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release' #Debug,
   stageVariables: 'version'

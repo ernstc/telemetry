@@ -22,6 +22,11 @@ $version = GetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "As
 if ($null -eq $version) { throw "cannot find AssemblyVersion attribute in file '$assemblyInfoFile'"; }
 SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyFileVersion" -version $version
 
+$assemblyInfoFile = "..\Common.Diagnostics.v2\Properties\AssemblyInfo.cs";
+Write-Host "assemblyInfoFile: $assemblyInfoFile"
+SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyVersion" -version $version
+SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyFileVersion" -version $version
+
 $assemblyInfoFile = "..\Common.Diagnostics.Full\Properties\AssemblyInfo.cs";
 Write-Host "assemblyInfoFile: $assemblyInfoFile"
 SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyVersion" -version $version

@@ -10,8 +10,8 @@ Set-Location $scriptFolder
 $scriptName = $MyInvocation.MyCommand.Name
 Start-Transcript -Path "\Logs\$scriptName.log" -Append
 
-$assemblyInfoFile = "..\Common.Diagnostics\Properties\AssemblyInfo.cs";
-Write-Host "assemblyInfoFile: $assemblyInfoFile"
+# $assemblyInfoFile = "..\Common.Diagnostics\Properties\AssemblyInfo.cs";
+# Write-Host "assemblyInfoFile: $assemblyInfoFile"
 
 # $version = GetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyVersion"
 # if ($null -eq $version) { throw "cannot find AssemblyVersion attribute in file '$assemblyInfoFile'"; }
