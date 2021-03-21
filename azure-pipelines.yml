@@ -276,14 +276,14 @@ stages:
             displayName: Copy Output variables (version)
             continueOnError: true
 
-          - task: NuGetCommand@2
-            displayName: Nuget push from 'packages' folder to 'Common.Diagnostics' feed
-            inputs:
-              command: 'push'
-              packagesToPush: '..\packages\$(buildConfiguration)\*.$(version).nupkg'
-              nuGetFeedType: 'internal'
-              publishVstsFeed: $(artifactsFeed)
-              allowPackageConflicts: true
+          # - task: NuGetCommand@2
+          #   displayName: Nuget push from 'packages' folder to 'Common.Diagnostics' feed
+          #   inputs:
+          #     command: 'push'
+          #     packagesToPush: '..\packages\$(buildConfiguration)\*.$(version).nupkg'
+          #     nuGetFeedType: 'internal'
+          #     publishVstsFeed: $(artifactsFeed)
+          #     allowPackageConflicts: true
           
           - task: NuGetCommand@2
             inputs:
