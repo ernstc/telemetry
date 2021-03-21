@@ -290,7 +290,7 @@ stages:
               command: 'push'
               packagesToPush: '..\packages\$(buildConfiguration)\*.$(version).nupkg'
               nuGetFeedType: 'external'
-              publishFeedCredentials: 'nuget feed telemetry'
+              publishFeedCredentials: 'diginsight telemetry'
 
         # routeTraffic:
         #   steps:
