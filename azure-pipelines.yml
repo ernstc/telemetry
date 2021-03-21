@@ -211,7 +211,10 @@ stages:
       displayName: Copy '*.nupkg' to '$(Build.ArtifactStagingDirectory)\Packages\$(buildConfiguration)'
       inputs:
         SourceFolder: .
-        contents: '($publishNupkgFilter)'
+        contents: |
+          **\bin\$(buildConfiguration)\**\*.$(version).nupkg
+          !**\bin\$(buildConfiguration)\**\Common.Diagnostics.Core.$(version).nupkg
+          !**\bin\$(buildConfiguration)\**\Common.Diagnostics.Full.$(version).nupkg
         targetFolder: $(Build.ArtifactStagingDirectory)\Packages\$(buildConfiguration)
         CleanTargetFolder: false
         OverWrite: true
