@@ -56,6 +56,8 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release' #Debug,
   publishBaseNames: '$(commonDiagnosticBaseName)|$(commonDiagnosticv2BaseName)|$(commonDiagnosticWinBaseName)|$(commonDiagnosticSerilogBaseName)|$(commonDiagnosticLog4netBaseName)|$(commonDiagnosticAppinsightsBaseName)' 
+  publishNupkgFilter: '**\bin\$(buildConfiguration)\**\($(commonDiagnosticBaseName)|$(commonDiagnosticv2BaseName)|$(commonDiagnosticWinBaseName)|$(commonDiagnosticSerilogBaseName)|$(commonDiagnosticLog4netBaseName)|$(commonDiagnosticAppinsightsBaseName)).$(version).nupkg'
+
   stageVariables: 'version'
 
 stages:
@@ -209,12 +211,13 @@ stages:
       displayName: Copy '*.nupkg' to '$(Build.ArtifactStagingDirectory)\Packages\$(buildConfiguration)'
       inputs:
         SourceFolder: .
-        contents: '**\bin\$(buildConfiguration)\**\($publishBaseNames).$(version).nupkg'
+        contents: '($publishNupkgFilter)'
         targetFolder: $(Build.ArtifactStagingDirectory)\Packages\$(buildConfiguration)
         CleanTargetFolder: false
         OverWrite: true
         flattenFolders: true
         preserveTimestamp: false
+        # contents: '**\bin\$(buildConfiguration)\**\($publishBaseNames).$(version).nupkg'
 
     - task: CopyFiles@2
       displayName: Copy 'bin' to '$(Build.BinariesDirectory)\Binaries\$(buildConfiguration)'
