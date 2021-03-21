@@ -141,7 +141,6 @@ namespace Common
                 OperationID = operationID;
                 OperationDept = operationDept;
             }
-            //this.ModuleContext = this.Assembly != null ? LoggerFormatter.GetModuleContext(this.Assembly) : null;
 
             if (this.DisableStartEndTraces == true) { return; }
 
@@ -158,7 +157,7 @@ namespace Common
         }
 
         internal SectionScope(ILogger logger, string typeName, string name = null, object payload = null, TraceSource traceSource = null, SourceLevels sourceLevel = SourceLevels.Verbose, LogLevel logLevel = LogLevel.Trace,
-                           string category = null, IDictionary<string, object> properties = null, string source = null, long startTicks = 0, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0, bool disableStartEndTraces = false)
+                              string category = null, IDictionary<string, object> properties = null, string source = null, long startTicks = 0, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0, bool disableStartEndTraces = false)
         {
             this.Name = name;
             this.Payload = payload;
@@ -174,8 +173,16 @@ namespace Common
             var type = logger?.GetType()?.GenericTypeArguments?.FirstOrDefault();
             this.T = type;
             this.TypeName = typeName;
-            this.ClassName = typeName?.Split('.')?.Last();
-            //this.Assembly = type?.Assembly;
+
+            if (!string.IsNullOrEmpty(typeName))
+            {
+                var classNameIndex = typeName.LastIndexOf('.') + 1;
+                var className = classNameIndex >= 0 ? typeName.Substring(classNameIndex) : typeName;
+                this.ClassName = className;
+            }
+            else { this.ClassName = "Unknown"; }
+
+            this.Assembly = type?.Assembly;
             this.Category = category;
             if (string.IsNullOrEmpty(source)) { source = this.Assembly?.GetName()?.Name; }
 

@@ -1,3 +1,8 @@
+[CmdletBinding()]
+param (
+    [string] $masterProjectBaseName,
+    [string] $projectBaseNames
+)
 
 Get-Module | Remove-Module
 $keys = @('PSBoundParameters','PWD','*Preference') + $PSBoundParameters.Keys 
@@ -10,51 +15,27 @@ Set-Location $scriptFolder
 $scriptName = $MyInvocation.MyCommand.Name
 Start-Transcript -Path "\Logs\$scriptName.log" -Append
 
-$assemblyInfoFile = "..\Common.Diagnostics\Properties\AssemblyInfo.cs";
-Write-Host "assemblyInfoFile: $assemblyInfoFile"
+$buildSourcesDirectory = $env:BUILD_SOURCESDIRECTORY
+if ([string]::IsNullOrEmpty($buildSourcesDirectory)) { $buildSourcesDirectory = ".." }
+Set-Location "$buildSourcesDirectory"
 
-# $version = GetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyVersion"
-# if ($null -eq $version) { throw "cannot find AssemblyVersion attribute in file '$assemblyInfoFile'"; }
-# $newVersion = "{0}.{1}.{2}.{3}" -f $version.Major, $version.Minor, $version.Build, ($version.Revision + 1)
-# SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyVersion" -version $newVersion
+if ([string]::IsNullOrEmpty($masterProjectBaseName)) { $masterProjectBaseName = "Common.Diagnostics" }
+if ([string]::IsNullOrEmpty($projectBaseNames)) { $projectBaseNames = "Common.Diagnostics|Common.Diagnostics.v2" }
+
+$assemblyInfoFile = ".\$masterProjectBaseName\Properties\AssemblyInfo.cs";
+Write-Host "assemblyInfoFile: $assemblyInfoFile"
 
 $version = IncrementVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyVersion"
 SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyFileVersion" -version $version
 
-$assemblyInfoFile = "..\Common.Diagnostics.v2\Properties\AssemblyInfo.cs";
-Write-Host "assemblyInfoFile: $assemblyInfoFile"
-SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyVersion" -version $version
-SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyFileVersion" -version $version
-
-$assemblyInfoFile = "..\Common.Diagnostics.Full\Properties\AssemblyInfo.cs";
-Write-Host "assemblyInfoFile: $assemblyInfoFile"
-SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyVersion" -version $version
-SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyFileVersion" -version $version
-
-$assemblyInfoFile = "..\Common.Diagnostics.Core\Properties\AssemblyInfo.cs";
-Write-Host "assemblyInfoFile: $assemblyInfoFile"
-SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyVersion" -version $version
-SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyFileVersion" -version $version
-
-$assemblyInfoFile = "..\Common.Diagnostics.Win\Properties\AssemblyInfo.cs";
-Write-Host "assemblyInfoFile: $assemblyInfoFile"
-SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyVersion" -version $version
-SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyFileVersion" -version $version
-
-$assemblyInfoFile = "..\Common.Diagnostics.Log4net\Properties\AssemblyInfo.cs";
-Write-Host "assemblyInfoFile: $assemblyInfoFile"
-SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyVersion" -version $version
-SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyFileVersion" -version $version
-
-$assemblyInfoFile = "..\Common.Diagnostics.Serilog\Properties\AssemblyInfo.cs";
-Write-Host "assemblyInfoFile: $assemblyInfoFile"
-SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyVersion" -version $version
-SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyFileVersion" -version $version
-
-$assemblyInfoFile = "..\Common.Diagnostics.AppInsights\Properties\AssemblyInfo.cs";
-Write-Host "assemblyInfoFile: $assemblyInfoFile"
-SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyVersion" -version $version
-SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyFileVersion" -version $version
+$projectBaseNamesArray = $projectBaseNames.Split('|')
+foreach($projectBaseName in $projectBaseNamesArray) 
+{
+    $assemblyInfoFile = ".\$projectBaseName\Properties\AssemblyInfo.cs";
+    Write-Host "assemblyInfoFile: $assemblyInfoFile"
+    SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyVersion" -version $version
+    SetVersionAttribute -filePath $assemblyInfoFile -versionAttribute "AssemblyFileVersion" -version $version
+}
 
 Write-Host "version: $version"
 Write-Host "##vso[task.setvariable variable=version;isOutput=true]$version"

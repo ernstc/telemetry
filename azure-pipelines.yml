@@ -35,17 +35,27 @@ variables:
   solution: ./$(projectBaseName).sln
   allSolutions: './$(projectBaseName).sln' 
   packageFolder: $(projectBaseName).Package
-  commonDiagnosticProj: ./$(projectBaseName)/$(projectBaseName).csproj
-  commonDiagnosticv2Proj: ./$(projectBaseName).v2/$(projectBaseName).v2.csproj
-  commonDiagnosticCoreProj: ./$(projectBaseName).Core/$(projectBaseName).Core.csproj
-  commonDiagnosticFullProj: ./$(projectBaseName).Full/$(projectBaseName).Full.csproj
-  commonDiagnosticWinProj: ./$(projectBaseName).Win/$(projectBaseName).Win.csproj
-  commonDiagnosticSerilogProj: ./$(projectBaseName).Serilog/$(projectBaseName).Serilog.csproj
-  commonDiagnosticLog4netProj: ./$(projectBaseName).Log4net/$(projectBaseName).Log4net.csproj
-  commonDiagnosticAppinsightsProj: ./$(projectBaseName).Appinsights/$(projectBaseName).Appinsights.csproj
+  commonDiagnosticBaseName: $(projectBaseName)
+  commonDiagnosticv2BaseName: $(projectBaseName).v2
+  commonDiagnosticCoreBaseName: $(projectBaseName).Core
+  commonDiagnosticFullBaseName: $(projectBaseName).Full
+  commonDiagnosticWinBaseName: $(projectBaseName).Win
+  commonDiagnosticSerilogBaseName: $(projectBaseName).Serilog
+  commonDiagnosticLog4netBaseName: $(projectBaseName).Log4net
+  commonDiagnosticAppinsightsBaseName: $(projectBaseName).Appinsights
+  commonDiagnosticProj: ./$(commonDiagnosticBaseName)/$(commonDiagnosticBaseName).csproj
+  commonDiagnosticv2Proj: ./$(commonDiagnosticv2BaseName)/$(commonDiagnosticv2BaseName).csproj
+  commonDiagnosticCoreProj: ./$(commonDiagnosticCoreBaseName)/$(commonDiagnosticCoreBaseName).csproj
+  commonDiagnosticFullProj: ./$(commonDiagnosticFullBaseName)/$(commonDiagnosticFullBaseName).csproj
+  commonDiagnosticWinProj: ./$(commonDiagnosticWinBaseName)/$(commonDiagnosticWinBaseName).csproj
+  commonDiagnosticSerilogProj: ./$(commonDiagnosticSerilogBaseName)/$(commonDiagnosticSerilogBaseName).csproj
+  commonDiagnosticLog4netProj: ./$(commonDiagnosticLog4netBaseName)/$(commonDiagnosticLog4netBaseName).csproj
+  commonDiagnosticAppinsightsProj: ./$(commonDiagnosticAppinsightsBaseName)/$(commonDiagnosticAppinsightsBaseName).csproj
   allProjects: '**/@($(commonDiagnosticProj)|$(commonDiagnosticv2Proj)|$(commonDiagnosticCoreProj)|$(commonDiagnosticFullProj)|$(commonDiagnosticWinProj)|$(commonDiagnosticSerilogProj)|$(commonDiagnosticLog4netProj)|$(commonDiagnosticAppinsightsProj))' 
+  buildBaseNames: '$(commonDiagnosticBaseName)|$(commonDiagnosticv2BaseName)|$(commonDiagnosticCoreBaseName)|$(commonDiagnosticFullBaseName)|$(commonDiagnosticWinBaseName)|$(commonDiagnosticSerilogBaseName)|$(commonDiagnosticLog4netBaseName)|$(commonDiagnosticAppinsightsBaseName)' 
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release' #Debug,
+  publishBaseNames: '$(commonDiagnosticBaseName)|$(commonDiagnosticv2BaseName)|$(commonDiagnosticWinBaseName)|$(commonDiagnosticSerilogBaseName)|$(commonDiagnosticLog4netBaseName)|$(commonDiagnosticAppinsightsBaseName)' 
   stageVariables: 'version'
 
 stages:
@@ -77,6 +87,7 @@ stages:
     - task: PowerShell@2
       inputs:
         filePath: '.\scripts\02. IncrementAssemblyVersion.ps1'
+        arguments: '-masterProjectBaseName ''$(commonDiagnosticBaseName)'' -projectBaseNames ''$(buildBaseNames)'' ' 
       name: psIncrementAssemblyVersion
       displayName: IncrementAssemblyVersion
       enabled: true
@@ -198,12 +209,13 @@ stages:
       displayName: Copy '*.nupkg' to '$(Build.ArtifactStagingDirectory)\Packages\$(buildConfiguration)'
       inputs:
         SourceFolder: .
-        contents: '**\bin\$(buildConfiguration)\**\*.nupkg'
+        contents: '**\bin\$(buildConfiguration)\**\($publishBaseNames).$(version).nupkg'
         targetFolder: $(Build.ArtifactStagingDirectory)\Packages\$(buildConfiguration)
         CleanTargetFolder: false
         OverWrite: true
         flattenFolders: true
         preserveTimestamp: false
+
     - task: CopyFiles@2
       displayName: Copy 'bin' to '$(Build.BinariesDirectory)\Binaries\$(buildConfiguration)'
       inputs:
@@ -217,6 +229,7 @@ stages:
       inputs:
         artifactName: 'packages/$(buildConfiguration)'
         targetPath: '$(Build.ArtifactStagingDirectory)\Packages\$(buildConfiguration)'
+
     - task: PublishPipelineArtifact@0
       displayName: PublishPipelineArtifact from '$(Build.BinariesDirectory)\Binaries\$(buildConfiguration)'
       inputs:

@@ -31,42 +31,6 @@ namespace Common
 {
     public class TraceLogger : ILogger
     {
-        #region const
-        public const string FILTER_SPLIT_REGEX = @"([-!]?[\""].+?[\""])|([-!]?\w+)";
-        public const string CONFIGSETTING_CRREPLACE = "CRReplace"; public const string CONFIGDEFAULT_CRREPLACE = "\\r";
-        public const string CONFIGSETTING_LFREPLACE = "LFReplace"; public const string CONFIGDEFAULT_LFREPLACE = "\\n";
-        public const string CONFIGSETTING_FILTER = "Filter"; public const string CONFIGDEFAULT_FILTER = null;
-        public const string CONFIGSETTING_CATEGORYFILTER = "CategoryFilter"; public const string CONFIGDEFAULT_CATEGORYFILTER = null;
-        public const string CONFIGSETTING_TIMESTAMPFORMAT = "TimestampFormat"; public const string CONFIGDEFAULT_TIMESTAMPFORMAT = "HH:mm:ss.fff"; // dd/MM/yyyy 
-        public const string CONFIGSETTING_FLUSHONWRITE = "FlushOnWrite"; public const bool CONFIGDEFAULT_FLUSHONWRITE = false;
-        public const string CONFIGSETTING_SHOWNESTEDFLOW = "ShowNestedFlow"; public const bool CONFIGDEFAULT_SHOWNESTEDFLOW = false;
-        public const string CONFIGSETTING_SHOWTRACECOST = "ShowTraceCost"; public const bool CONFIGDEFAULT_SHOWTRACECOST = false;
-        public const string CONFIGSETTING_MAXMESSAGELEVEL = "MaxMessageLevel"; public const int CONFIGDEFAULT_MAXMESSAGELEVEL = 3;
-        public const string CONFIGSETTING_MAXMESSAGELEN = "MaxMessageLen"; public const int CONFIGDEFAULT_MAXMESSAGELEN = 256;
-        public const string CONFIGSETTING_MAXMESSAGELENINFO = "MaxMessageLenInfo"; public const int CONFIGDEFAULT_MAXMESSAGELENINFO = 512;
-        public const string CONFIGSETTING_MAXMESSAGELENWARNING = "MaxMessageLenWarning"; public const int CONFIGDEFAULT_MAXMESSAGELENWARNING = 1024;
-        public const string CONFIGSETTING_MAXMESSAGELENERROR = "MaxMessageLenError"; public const int CONFIGDEFAULT_MAXMESSAGELENERROR = -1;
-        public const string CONFIGSETTING_PROCESSNAMEPADDING = "ProcessNamePadding"; public const int CONFIGDEFAULT_PROCESSNAMEPADDING = 15;
-        public const string CONFIGSETTING_SOURCEPADDING = "SourcePadding"; public const int CONFIGDEFAULT_SOURCEPADDING = 5;
-        public const string CONFIGSETTING_CATEGORYPADDING = "CategoryPadding"; public const int CONFIGDEFAULT_CATEGORYPADDING = 5;
-        public const string CONFIGSETTING_SOURCELEVELPADDING = "SourceLevelPadding"; public const int CONFIGDEFAULT_SOURCELEVELPADDING = 11;
-        public const string CONFIGSETTING_DELTAPADDING = "DeltaPadding"; public const int CONFIGDEFAULT_DELTAPADDING = 5;
-        public const string CONFIGSETTING_LASTWRITECONTINUATIONENABLED = "LastWriteContinuationEnabled"; public const bool CONFIGDEFAULT_LASTWRITECONTINUATIONENABLED = false;
-
-        public const string CONFIGSETTING_TRACEMESSAGEFORMATPREFIX = "TraceMessageFormatPrefix"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATPREFIX = "[{now}] {source} {category} {tidpid} - {sourceLevel} - {lastLineDeltaPadded} {deltaPadded} {nesting} {messageNesting}";
-        public const string CONFIGSETTING_TRACEMESSAGEFORMAT = "TraceMessageFormat"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMAT = "[{now}] {source} {category} {tidpid} - {sourceLevel} - {lastLineDeltaPadded} {deltaPadded} {nesting} {messageNesting}{message}";
-        public const string CONFIGSETTING_TRACEMESSAGEFORMATVERBOSE = "TraceMessageFormatVerbose"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATVERBOSE = null;
-        public const string CONFIGSETTING_TRACEMESSAGEFORMATINFORMATION = "TraceMessageFormatInformation"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATINFORMATION = null;
-        public const string CONFIGSETTING_TRACEMESSAGEFORMATWARNING = "TraceMessageFormatWarning"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATWARNING = null;
-        public const string CONFIGSETTING_TRACEMESSAGEFORMATERROR = "TraceMessageFormatError"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATERROR = null;
-        public const string CONFIGSETTING_TRACEMESSAGEFORMATCRITICAL = "TraceMessageFormatCritical"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATCRITICAL = null;
-        public const string CONFIGSETTING_TRACEMESSAGEFORMATSTART = "TraceMessageFormatStart"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATSTART = "[{now}] {source} {category} {tidpid} - {sourceLevel} - {lastLineDeltaPadded} {deltaPadded} {nesting} {messageNesting}{message}";
-        public const string CONFIGSETTING_TRACEMESSAGEFORMATSTOP = "TraceMessageFormatStop"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATSTOP = "[{now}] {source} {category} {tidpid} - {sourceLevel} - {lastLineDeltaPadded} {deltaPadded} {nesting} {messageNesting}{message}{result}";
-        public const string CONFIGSETTING_TRACEMESSAGEFORMATINLINESTOP = "TraceMessageFormatInlineStop"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATINLINESTOP = "... END ({delta} secs){result}";
-        public const string CONFIGSETTING_TRACEMESSAGEFORMATSUSPEND = "TraceMessageFormatSuspend"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATSUSPEND = null;
-        public const string CONFIGSETTING_TRACEMESSAGEFORMATRESUME = "TraceMessageFormatResume"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATRESUME = null;
-        public const string CONFIGSETTING_TRACEMESSAGEFORMATTRANSFER = "TraceMessageFormatTransfer"; public const string CONFIGDEFAULT_TRACEMESSAGEFORMATTRANSFER = null;
-        #endregion
         #region internal state
         private static Type T = typeof(TraceLogger);
         private static readonly string _traceSourceName = "TraceSource";
@@ -158,7 +122,11 @@ namespace Common
         public IDisposable BeginScope<TState>(TState state)
         {
             var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
-            var sec = new SectionScope(this, this.Name, null, null, TraceLogger.TraceSource, SourceLevels.Verbose, LogLevel.Trace, this.Name, null, null, startTicks, state?.ToString(), null, -1);
+
+            //var assembly = Assembly.GetCallingAssembly();
+            var classNameIndex = this.Name.LastIndexOf('.') + 1;
+            var source = classNameIndex >= 0 ? this.Name.Substring(0, classNameIndex) : this.Name;
+            var sec = new SectionScope(this, this.Name, null, null, TraceLogger.TraceSource, SourceLevels.Verbose, LogLevel.Trace, this.Name, null, source, startTicks, state?.ToString(), null, -1);
             return sec;
         }
         public bool IsEnabled(LogLevel logLevel)
@@ -175,11 +143,18 @@ namespace Common
                 var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
                 var type = typeof(Application);
                 var caller = SectionScope.Current.Value as SectionScope;
-                var innerSectionScope = caller = caller != null ? caller.GetInnerScope() : new SectionScope(this, this.Name, null, null, TraceLogger.TraceSource, SourceLevels.Verbose, LogLevel.Debug, this.Name, null, null, startTicks, "Unknown", null, -1, true) { IsInnerScope = true };
+
+                var classNameIndex = this.Name.LastIndexOf('.');
+                var source = classNameIndex >= 0 ? this.Name.Substring(0, classNameIndex) : this.Name;
+                //var assembly = Assembly.GetCallingAssembly();
+                var innerSectionScope = caller = caller != null ? caller.GetInnerScope() : new SectionScope(this, this.Name, null, null, TraceLogger.TraceSource, SourceLevels.Verbose, LogLevel.Debug, this.Name, null, source, startTicks, "Unknown", null, -1, true) { IsInnerScope = true };
 
                 var stateFormatter = formatter != null ? formatter : (s, exc) => { return s.GetLogString(); };
 
-                entry = new TraceEntry() { GetMessage = () => { return stateFormatter(state, null); }, TraceEventType = TraceEventType.Verbose, SourceLevel = SourceLevels.Verbose, Properties = null, Source = null, Category = this.Name, SectionScope = innerSectionScope, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = false, ElapsedMilliseconds = TraceLogger.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
+                entry = new TraceEntry() { GetMessage = () => { return stateFormatter(state, null); }, TraceEventType = TraceEventType.Verbose, SourceLevel = SourceLevels.Verbose,
+                    Properties = null, Source = source, Category = this.Name, SectionScope = innerSectionScope,
+                    Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = false, ElapsedMilliseconds = TraceLogger.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks
+                };
             }
 
             if (this.Listeners != null && this.Listeners.Count > 0)
@@ -591,7 +566,7 @@ namespace Common
                     var maxMessageLenError = section?._maxMessageLenError ?? section?.ModuleContext?.MaxMessageLenError;
                     if (maxMessageLenError == null)
                     {
-                        var val = ConfigurationHelper.GetSetting("MaxMessageLenError", TraceLogger.CONFIGDEFAULT_MAXMESSAGELENERROR);
+                        var val = ConfigurationHelper.GetSetting("MaxMessageLenError", TraceLoggerProvider.CONFIGDEFAULT_MAXMESSAGELENERROR);
                         if (val != 0) { maxMessageLenError = val; if (section != null) { section._maxMessageLenError = maxMessageLenError; if (section.ModuleContext != null) { section.ModuleContext.MaxMessageLenError = maxMessageLenError; } } }
                     }
                     if (maxMessageLenError != 0) { maxMessageLenSpecific = maxMessageLenError; }
@@ -600,7 +575,7 @@ namespace Common
                     var maxMessageLenWarning = section?._maxMessageLenWarning ?? section?.ModuleContext?.MaxMessageLenWarning;
                     if (maxMessageLenWarning == null)
                     {
-                        var val = ConfigurationHelper.GetSetting<int>("MaxMessageLenWarning", TraceLogger.CONFIGDEFAULT_MAXMESSAGELENWARNING);
+                        var val = ConfigurationHelper.GetSetting<int>("MaxMessageLenWarning", TraceLoggerProvider.CONFIGDEFAULT_MAXMESSAGELENWARNING);
                         if (val != 0) { maxMessageLenWarning = val; if (section != null) { section._maxMessageLenWarning = maxMessageLenWarning; if (section.ModuleContext != null) { section.ModuleContext.MaxMessageLenWarning = maxMessageLenWarning; } } }
                     }
                     if (maxMessageLenWarning != 0) { maxMessageLenSpecific = maxMessageLenWarning; }
@@ -609,7 +584,7 @@ namespace Common
                     var maxMessageLenInfo = section?._maxMessageLenInfo ?? section?.ModuleContext?.MaxMessageLenInfo;
                     if (maxMessageLenInfo == null)
                     {
-                        var val = ConfigurationHelper.GetSetting<int>("MaxMessageLenInfo", TraceLogger.CONFIGDEFAULT_MAXMESSAGELENINFO);
+                        var val = ConfigurationHelper.GetSetting<int>("MaxMessageLenInfo", TraceLoggerProvider.CONFIGDEFAULT_MAXMESSAGELENINFO);
                         if (val != 0) { maxMessageLenInfo = val; if (section != null) { section._maxMessageLenInfo = maxMessageLenInfo; if (section.ModuleContext != null) { section.ModuleContext.MaxMessageLenInfo = maxMessageLenInfo; } } }
                     }
                     if (maxMessageLenInfo != 0) { maxMessageLenSpecific = maxMessageLenInfo; }
@@ -618,7 +593,7 @@ namespace Common
                     var maxMessageLenVerbose = section?._maxMessageLenVerbose ?? section?.ModuleContext?.MaxMessageLenVerbose;
                     if (maxMessageLenVerbose == null)
                     {
-                        var val = ConfigurationHelper.GetSetting<int>("MaxMessageLenVerbose", TraceLogger.CONFIGDEFAULT_MAXMESSAGELENINFO);
+                        var val = ConfigurationHelper.GetSetting<int>("MaxMessageLenVerbose", TraceLoggerProvider.CONFIGDEFAULT_MAXMESSAGELENINFO);
                         if (val != 0) { maxMessageLenVerbose = val; if (section != null) { section._maxMessageLenVerbose = maxMessageLenVerbose; if (section.ModuleContext != null) { section.ModuleContext.MaxMessageLenVerbose = maxMessageLenVerbose; } } }
                     }
                     if (maxMessageLenVerbose != 0) { maxMessageLenSpecific = maxMessageLenVerbose; }
@@ -627,7 +602,7 @@ namespace Common
             var maxMessageLen = maxMessageLenSpecific ?? section?._maxMessageLen ?? section?.ModuleContext?.MaxMessageLen;
             if (maxMessageLen == null)
             {
-                maxMessageLen = ConfigurationHelper.GetSetting<int>("MaxMessageLen", TraceLogger.CONFIGDEFAULT_MAXMESSAGELEN);
+                maxMessageLen = ConfigurationHelper.GetSetting<int>("MaxMessageLen", TraceLoggerProvider.CONFIGDEFAULT_MAXMESSAGELEN);
                 if (section != null) { section._maxMessageLen = maxMessageLen; if (section.ModuleContext != null) { section.ModuleContext.MaxMessageLen = maxMessageLen; } }
             }
             if (section != null) { section._maxMessageLen = maxMessageLen; }
@@ -668,7 +643,7 @@ namespace Common
             string line = null;
             string category = entry.Category ?? "general";
             var processName = TraceLogger.ProcessName + ".exe";
-            var source = entry.Source ?? "";
+            var source = entry.Source ?? "unknown";
             var codeSection = entry.SectionScope;
             if (processName != null && processName.Length < _processNamePadding) { processName = processName.PadRight(_processNamePadding); }
             if (source != null && source.Length < _sourcePadding) { source = source.PadRight(_sourcePadding); }

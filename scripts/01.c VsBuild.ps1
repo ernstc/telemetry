@@ -24,7 +24,6 @@ if ([string]::IsNullOrEmpty($buildSourcesDirectory)) { $buildSourcesDirectory = 
 Set-Location "$buildSourcesDirectory"
 
 if ([string]::IsNullOrEmpty($path)) { $path = ".." }
-# if ($path.IndexOf('|') -ge 0) { $path = $path.Split('|') }
 if ([string]::IsNullOrEmpty($projects)) { $projects = "ClientApp" }
 
 Write-Host "projects: $projects"
