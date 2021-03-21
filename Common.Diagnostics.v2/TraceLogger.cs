@@ -19,8 +19,10 @@ using System.Text.RegularExpressions;
 using System.Threading;
 #endregion
 
-// opzioni per nomenclatura definitiva:
-// . Diginsight.Dotnet.Diagnostics // .Trace
+// options for final naming:
+// . Diginsight.System.Diagnostics 
+// . Diginsight.System.Diagnostics.Log4Net 
+// . Diginsight.System.Diagnostics.Serilog
 // . Diginsight.Dotnet.Logger
 // . Diginsight.Dotnet.Xxxx
 // Microsoft.Extensions.Logging.ExecutionFlow
@@ -123,7 +125,6 @@ namespace Common
         {
             var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
 
-            //var assembly = Assembly.GetCallingAssembly();
             var classNameIndex = this.Name.LastIndexOf('.') + 1;
             var source = classNameIndex >= 0 ? this.Name.Substring(0, classNameIndex) : this.Name;
             var sec = new SectionScope(this, this.Name, null, null, TraceLogger.TraceSource, SourceLevels.Verbose, LogLevel.Trace, this.Name, null, source, startTicks, state?.ToString(), null, -1);
@@ -146,7 +147,6 @@ namespace Common
 
                 var classNameIndex = this.Name.LastIndexOf('.');
                 var source = classNameIndex >= 0 ? this.Name.Substring(0, classNameIndex) : this.Name;
-                //var assembly = Assembly.GetCallingAssembly();
                 var innerSectionScope = caller = caller != null ? caller.GetInnerScope() : new SectionScope(this, this.Name, null, null, TraceLogger.TraceSource, SourceLevels.Verbose, LogLevel.Debug, this.Name, null, source, startTicks, "Unknown", null, -1, true) { IsInnerScope = true };
 
                 var stateFormatter = formatter != null ? formatter : (s, exc) => { return s.GetLogString(); };
