@@ -25,7 +25,7 @@ namespace EasySampleBlazorAppv2
             var consoleProvider = serviceProvider.GetRequiredService<ILoggerProvider>();
             Console.WriteLine($"loggerProvider: '{consoleProvider}'");
 
-            var traceLoggerProvider = new TraceLoggerProvider(builder.Configuration) { ConfigurationSuffix = "Console" };
+            var traceLoggerProvider = new TraceLoggerFormatProvider(builder.Configuration) { ConfigurationSuffix = "Console" };
             traceLoggerProvider.AddProvider(consoleProvider);
 
             builder.Logging.ClearProviders();

@@ -1,13 +1,16 @@
 ﻿#region using
 using Common;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 //using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.ApplicationInsights;
 using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.Logging.Debug;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -70,7 +73,19 @@ namespace EasySample
                         var options = new Log4NetProviderOptions();
                         options.Log4NetConfigFileName = "log4net.config";
                         var log4NetProvider = new Log4NetProvider(options);
-                        loggingBuilder.AddDiginsight(log4NetProvider, configuration);
+                        loggingBuilder.AddDiginsightFormatted(log4NetProvider, configuration);
+
+                        //loggingBuilder.AddApplicationInsights("6600ae1e-1466-4ad4-aea7-c017a8ab5dce");
+                        //loggingBuilder.Services.Configure(delegate (TelemetryConfiguration telemetryConfiguration) { telemetryConfiguration.InstrumentationKey = "6600ae1e-1466-4ad4-aea7-c017a8ab5dce"; });
+                        //loggingBuilder.Services.Configure(delegate (ApplicationInsightsLoggerOptions appinsightOptions) { });
+
+                        TelemetryConfiguration telemetryConfiguration = new TelemetryConfiguration("6600ae1e-1466-4ad4-aea7-c017a8ab5dce");
+                        ApplicationInsightsLoggerOptions appinsightOptions = new ApplicationInsightsLoggerOptions();
+                        var tco = Options.Create<TelemetryConfiguration>(telemetryConfiguration);
+                        var aio = Options.Create<ApplicationInsightsLoggerOptions>(appinsightOptions);
+                        loggingBuilder.AddDiginsightJson(new ApplicationInsightsLoggerProvider(tco, aio), configuration);
+
+                        loggingBuilder.AddFilter<ApplicationInsightsLoggerProvider>("", LogLevel.Trace);
 
                     }).Build();
 

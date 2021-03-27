@@ -34,4 +34,9 @@ namespace Common
     {
         TraceListener InnerListener { get; set; }
     }
+    public interface IFormatTraceEntry
+    {
+        string FormatTraceEntry(TraceEntry entry, Exception ex);
+    }
+
 }
