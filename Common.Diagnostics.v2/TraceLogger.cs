@@ -175,7 +175,7 @@ namespace Common
                             if (TraceLogger._isInitializeComplete.Value == false && TraceLogger._isInitializing.Value == false) { TraceLogger.Init(null); }
                         }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
                     }
                 }

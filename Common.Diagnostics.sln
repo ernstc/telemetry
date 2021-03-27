@@ -63,6 +63,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasySample500v2", "Samplesv
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02. aspnet", "02. aspnet", "{7CFE9FA0-1247-444C-B54F-46FB73C0B3FD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasySampleBlazorAppv2", "Samplesv2\02. aspnet\EasySampleBlazorAppv2\EasySampleBlazorAppv2.csproj", "{90A82A3A-1FEE-45A2-B5A9-601607F8E84B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -149,6 +151,10 @@ Global
 		{037AFC1A-A3E2-40C8-8C3C-C85F56FD7D84}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{037AFC1A-A3E2-40C8-8C3C-C85F56FD7D84}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{037AFC1A-A3E2-40C8-8C3C-C85F56FD7D84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90A82A3A-1FEE-45A2-B5A9-601607F8E84B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90A82A3A-1FEE-45A2-B5A9-601607F8E84B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90A82A3A-1FEE-45A2-B5A9-601607F8E84B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90A82A3A-1FEE-45A2-B5A9-601607F8E84B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -179,6 +185,7 @@ Global
 		{172F1450-3593-484F-9A4F-303C58367589} = {84E2069D-C129-4FFC-8CC4-FFAEE395BC2A}
 		{037AFC1A-A3E2-40C8-8C3C-C85F56FD7D84} = {172F1450-3593-484F-9A4F-303C58367589}
 		{7CFE9FA0-1247-444C-B54F-46FB73C0B3FD} = {84E2069D-C129-4FFC-8CC4-FFAEE395BC2A}
+		{90A82A3A-1FEE-45A2-B5A9-601607F8E84B} = {7CFE9FA0-1247-444C-B54F-46FB73C0B3FD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A0B2D1C5-C68C-4899-938A-E9CA74CB5ED5}

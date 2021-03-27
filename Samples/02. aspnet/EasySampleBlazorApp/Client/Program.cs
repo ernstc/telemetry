@@ -13,18 +13,25 @@ namespace EasySampleBlazorApp.Client
 {
     public class Program
     {
+        public static Type T = typeof(Program);
+
         public static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-
+            // Initializes Diginsight
             TraceManager.Init(System.Diagnostics.SourceLevels.All, builder.Configuration);
 
-            var buildServices = builder.Build();
-            IServiceProvider serviceProvider = buildServices.Services;
+            using (var sec = TraceManager.GetCodeSection(T))
+            {
+                var buildServices = builder.Build(); sec.Debug("buildServices = builder.Build(); completed");
+                IServiceProvider serviceProvider = buildServices.Services;
 
-            await buildServices.RunAsync();
+                sec.Debug("... await buildServices.RunAsync();");
+                await buildServices.RunAsync();
+            }
+
         }
     }
 }
