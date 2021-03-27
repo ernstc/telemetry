@@ -465,7 +465,7 @@ namespace Common
 
         private Type GetType<T>(T t) { return typeof(T); }
     }
-    public class CodeSectionSurrogate
+    public class SectionScopeSurrogate
     {
         public int NestingLevel { get; set; }
         public int OperationDept { get; set; }
@@ -496,8 +496,7 @@ namespace Common
         public string OperationID { get; set; }
         public bool IsInnerScope { get; set; }
     }
-
-    public class CodeSectionInfo
+    public class SectionScopeInfo
     {
         public object Payload { get; set; }
         public string Name { get; set; }

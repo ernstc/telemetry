@@ -151,9 +151,21 @@ namespace Common
 
                 var stateFormatter = formatter != null ? formatter : (s, exc) => { return s.GetLogString(); };
 
-                entry = new TraceEntry() { GetMessage = () => { return stateFormatter(state, null); }, TraceEventType = TraceEventType.Verbose, SourceLevel = SourceLevels.Verbose,
-                    Properties = null, Source = source, Category = this.Name, SectionScope = innerSectionScope,
-                    Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = false, ElapsedMilliseconds = TraceLogger.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks
+                entry = new TraceEntry()
+                {
+                    GetMessage = () => { return stateFormatter(state, null); },
+                    TraceEventType = TraceEventType.Verbose,
+                    SourceLevel = SourceLevels.Verbose,
+                    Properties = null,
+                    Source = source,
+                    Category = this.Name,
+                    SectionScope = innerSectionScope,
+                    Thread = Thread.CurrentThread,
+                    ThreadID = Thread.CurrentThread.ManagedThreadId,
+                    ApartmentState = Thread.CurrentThread.GetApartmentState(),
+                    DisableCRLFReplace = false,
+                    ElapsedMilliseconds = TraceLogger.Stopwatch.ElapsedMilliseconds,
+                    TraceStartTicks = startTicks
                 };
             }
 
@@ -455,6 +467,12 @@ namespace Common
         public static ConcurrentDictionary<string, object> Properties { get; set; } = new ConcurrentDictionary<string, object>();
         public IList<ILogger> Listeners { get; } = new List<ILogger>();
         #endregion
+
+        public TraceLoggerProvider() { }
+        public TraceLoggerProvider(IConfiguration configuration)
+        {
+            TraceLogger.Init(configuration);
+        }
 
         public void AddProvider(ILoggerProvider provider)
         {

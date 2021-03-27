@@ -67,6 +67,6 @@ namespace Common
         public int ThreadID { get; set; }
         public ApartmentState ApartmentState { get; set; }
         public bool DisableCRLFReplace { get; set; }
-        public CodeSectionSurrogate CodeSection { get; set; }
+        public SectionScopeSurrogate CodeSection { get; set; }
     }
 }
