@@ -21,7 +21,8 @@ namespace EasySampleBlazorv2.Client.Pages
             using (var scope = _logger.BeginMethodScope())
             {
                 scope.LogDebug($"Http.BaseAddress: {Http.BaseAddress}");
-                forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json");
+                //forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json");
+                forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
                 scope.LogDebug(new { forecasts });
             }
         }

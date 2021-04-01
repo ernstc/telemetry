@@ -65,11 +65,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03. Aspnet Blazor", "03. As
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02. Aspnet", "02. Aspnet", "{32D7973C-2C85-4A77-ABDF-92DD594C7FED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasySampleBlazorv2.Server", "Samplesv2\03. Aspnet Blazor\EasySampleBlazorv2\Server\EasySampleBlazorv2.Server.csproj", "{78EDD36A-7315-4104-B726-4CAB1C1F92B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasySampleBlazorv2.Server", "Samplesv2\03. Aspnet Blazor\EasySampleBlazorv2\Server\EasySampleBlazorv2.Server.csproj", "{78EDD36A-7315-4104-B726-4CAB1C1F92B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasySampleBlazorv2.Client", "Samplesv2\03. Aspnet Blazor\EasySampleBlazorv2\Client\EasySampleBlazorv2.Client.csproj", "{679A6DBD-C6A2-48D6-BDF7-3EB59EC7C1FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasySampleBlazorv2.Client", "Samplesv2\03. Aspnet Blazor\EasySampleBlazorv2\Client\EasySampleBlazorv2.Client.csproj", "{679A6DBD-C6A2-48D6-BDF7-3EB59EC7C1FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasySampleBlazorv2.Shared", "Samplesv2\03. Aspnet Blazor\EasySampleBlazorv2\Shared\EasySampleBlazorv2.Shared.csproj", "{CDAE5BD2-FC24-4144-B7A2-53A436B14363}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasySampleBlazorv2.Shared", "Samplesv2\03. Aspnet Blazor\EasySampleBlazorv2\Shared\EasySampleBlazorv2.Shared.csproj", "{CDAE5BD2-FC24-4144-B7A2-53A436B14363}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
