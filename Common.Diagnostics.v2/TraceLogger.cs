@@ -403,10 +403,10 @@ namespace Common
         {
             TraceLogger.Init(config);
 
-            var traceLoggerProvider = new TraceLoggerFormatProvider() { ConfigurationSuffix = configurationPrefix };
-            traceLoggerProvider.AddProvider(logProvider);
+            var traceLoggerFormatProvider = new TraceLoggerFormatProvider() { ConfigurationSuffix = configurationPrefix };
+            traceLoggerFormatProvider.AddProvider(logProvider);
 
-            builder.AddProvider(traceLoggerProvider);
+            builder.AddProvider(traceLoggerFormatProvider);
             return builder;
         }
         public static ILoggingBuilder AddDiginsightJson(this ILoggingBuilder builder, ILoggerProvider logProvider, IConfiguration config = null, string configurationPrefix = null) // , IServiceProvider serviceProvider
