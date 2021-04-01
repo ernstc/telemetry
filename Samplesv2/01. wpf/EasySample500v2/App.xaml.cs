@@ -89,8 +89,10 @@ namespace EasySample
 
                     }).Build();
 
-            _logger.Start(Host);
-            using (var scope = _logger.BeginMethodScope())
+            Host.InitTraceLogger();
+
+            var logger = Host.GetLogger<App>();
+            using (var scope = logger.BeginMethodScope())
             {
                 // LogStringExtensions.RegisterLogstringProvider(this);
             }

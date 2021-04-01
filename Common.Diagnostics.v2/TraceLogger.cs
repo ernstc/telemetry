@@ -272,6 +272,7 @@ namespace Common
 
             return configuration;
         }
+
     }
     public static class TraceLoggerExtensions
     {
@@ -291,7 +292,13 @@ namespace Common
             return sec;
         }
 
-        public static void Start(this ILogger logger, IHost Host)
+        public static ILogger<T> GetLogger<T>(this IHost host)
+        {
+            TraceLogger.Host = host;
+            var logger = host.Services.GetRequiredService<ILogger<T>>();
+            return logger;
+        }
+        public static void InitTraceLogger(this IHost Host)
         {
             TraceLogger.Host = Host;
             return;

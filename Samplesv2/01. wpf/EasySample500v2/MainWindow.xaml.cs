@@ -35,7 +35,7 @@ namespace EasySample
         static MainWindow()
         {
             var host = (App.Current as App).Host;
-            var logger = host.Services.GetRequiredService<ILogger<MainWindow>>();
+            var logger = host.GetLogger<MainWindow>();
             using (var scope = logger.BeginMethodScope())
             {
             }
