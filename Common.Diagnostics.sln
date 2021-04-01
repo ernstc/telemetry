@@ -71,6 +71,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasySampleBlazorv2.Client",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasySampleBlazorv2.Shared", "Samplesv2\03. Aspnet Blazor\EasySampleBlazorv2\Shared\EasySampleBlazorv2.Shared.csproj", "{CDAE5BD2-FC24-4144-B7A2-53A436B14363}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasySampleBlazorAppv2", "Samplesv2\03. Aspnet Blazor\EasySampleBlazorAppv2\EasySampleBlazorAppv2.csproj", "{F8AA12B7-4A75-48F6-AA5F-678D7C978A9F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -169,6 +171,10 @@ Global
 		{CDAE5BD2-FC24-4144-B7A2-53A436B14363}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CDAE5BD2-FC24-4144-B7A2-53A436B14363}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CDAE5BD2-FC24-4144-B7A2-53A436B14363}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8AA12B7-4A75-48F6-AA5F-678D7C978A9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8AA12B7-4A75-48F6-AA5F-678D7C978A9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8AA12B7-4A75-48F6-AA5F-678D7C978A9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8AA12B7-4A75-48F6-AA5F-678D7C978A9F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -203,6 +209,7 @@ Global
 		{78EDD36A-7315-4104-B726-4CAB1C1F92B4} = {7CFE9FA0-1247-444C-B54F-46FB73C0B3FD}
 		{679A6DBD-C6A2-48D6-BDF7-3EB59EC7C1FA} = {7CFE9FA0-1247-444C-B54F-46FB73C0B3FD}
 		{CDAE5BD2-FC24-4144-B7A2-53A436B14363} = {7CFE9FA0-1247-444C-B54F-46FB73C0B3FD}
+		{F8AA12B7-4A75-48F6-AA5F-678D7C978A9F} = {7CFE9FA0-1247-444C-B54F-46FB73C0B3FD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A0B2D1C5-C68C-4899-938A-E9CA74CB5ED5}
