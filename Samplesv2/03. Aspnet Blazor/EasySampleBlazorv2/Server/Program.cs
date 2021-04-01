@@ -26,13 +26,13 @@ namespace EasySampleBlazorv2.Server
                               var log4NetProvider = new Log4NetProvider(options);
                               loggingBuilder.AddDiginsightFormatted(log4NetProvider, context.Configuration);
 
-                              TelemetryConfiguration telemetryConfiguration = new TelemetryConfiguration("6600ae1e-1466-4ad4-aea7-c017a8ab5dce");
-                              ApplicationInsightsLoggerOptions appinsightOptions = new ApplicationInsightsLoggerOptions();
-                              var tco = Options.Create<TelemetryConfiguration>(telemetryConfiguration);
-                              var aio = Options.Create<ApplicationInsightsLoggerOptions>(appinsightOptions);
-                              loggingBuilder.AddDiginsightJson(new ApplicationInsightsLoggerProvider(tco, aio), context.Configuration);
+                              //TelemetryConfiguration telemetryConfiguration = new TelemetryConfiguration("6600ae1e-1466-4ad4-aea7-c017a8ab5dce");
+                              //ApplicationInsightsLoggerOptions appinsightOptions = new ApplicationInsightsLoggerOptions();
+                              //var tco = Options.Create<TelemetryConfiguration>(telemetryConfiguration);
+                              //var aio = Options.Create<ApplicationInsightsLoggerOptions>(appinsightOptions);
+                              //loggingBuilder.AddDiginsightJson(new ApplicationInsightsLoggerProvider(tco, aio), context.Configuration);
 
-                              loggingBuilder.AddFilter<ApplicationInsightsLoggerProvider>("", LogLevel.Trace);
+                              //loggingBuilder.AddFilter<ApplicationInsightsLoggerProvider>("", LogLevel.Trace);
 
                           });
 
