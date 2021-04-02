@@ -294,6 +294,8 @@ namespace Common
 
         public static ILogger<T> GetLogger<T>(this IHost host)
         {
+            if (host == null) return null;
+
             TraceLogger.Host = host;
             var logger = host.Services.GetRequiredService<ILogger<T>>();
             return logger;
