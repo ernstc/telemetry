@@ -298,7 +298,7 @@ namespace Common
 
             TraceLogger.Host = host;
             var logger = host.Services.GetRequiredService<ILogger<T>>();
-            return logger;
+            return logger; 
         }
         public static void InitTraceLogger(this IHost Host)
         {
