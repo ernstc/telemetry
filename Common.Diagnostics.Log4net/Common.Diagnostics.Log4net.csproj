@@ -10,7 +10,7 @@
 		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 		<PackageProjectUrl>https://github.com/diginsight/telemetry</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/diginsight/telemetry.git</RepositoryUrl>
-		<PackageIcon>EkipConnect.png</PackageIcon>
+		<PackageIcon>TelemetryBig.png</PackageIcon>
 		<Authors>diginsight</Authors>
 		<Description>provides a System.Diagnostics listener that sends Common.Diagnostics telemetry to Log4net</Description>
 		<SignAssembly>true</SignAssembly>
@@ -22,7 +22,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Include="..\images\01. Project image\EkipConnect\EkipConnect.png">
+	  <None Include="..\images\01. Project image\Telemetry\TelemetryBig.png">
 	    <Pack>True</Pack>
 	    <PackagePath></PackagePath>
 	  </None>

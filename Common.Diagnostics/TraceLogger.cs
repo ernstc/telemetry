@@ -159,7 +159,7 @@ namespace Common
                     Properties = null,
                     Source = source,
                     Category = this.Name,
-                    SectionScope = innerSectionScope,
+                    CodeSectionScope = innerSectionScope,
                     Thread = Thread.CurrentThread,
                     ThreadID = Thread.CurrentThread.ManagedThreadId,
                     ApartmentState = Thread.CurrentThread.GetApartmentState(),
@@ -680,7 +680,7 @@ namespace Common
             string category = entry.Category ?? "general";
             var processName = TraceLogger.ProcessName + ".exe";
             var source = entry.Source ?? "unknown";
-            var codeSection = entry.SectionScope;
+            var codeSection = entry.CodeSectionScope;
             if (processName != null && processName.Length < _processNamePadding) { processName = processName.PadRight(_processNamePadding); }
             if (source != null && source.Length < _sourcePadding) { source = source.PadRight(_sourcePadding); }
             if (source.Length > _sourcePadding) { _sourcePadding = source.Length; }
@@ -703,7 +703,7 @@ namespace Common
             var delta = ""; var lastLineDelta = ""; var lastLineDeltaSB = new StringBuilder();
             var deltaPadded = ""; var lastLineDeltaPadded = "";
             var resultString = "";
-            var messageNesting = _showNestedFlow ? new string(' ', entry.SectionScope != null ? entry.SectionScope.NestingLevel * 2 : 0) : "";
+            var messageNesting = _showNestedFlow ? new string(' ', entry.CodeSectionScope != null ? entry.CodeSectionScope.NestingLevel * 2 : 0) : "";
 
             lastLineDeltaPadded = lastLineDelta = getLastLineDeltaOptimized(entry, lastWrite); // .PadLeft(5)
             if (lastLineDeltaPadded != null && lastLineDeltaPadded.Length < _deltaPadding) { lastLineDeltaPadded = lastLineDeltaPadded.PadLeft(_deltaPadding); }
@@ -757,7 +757,7 @@ namespace Common
                     if (deltaPadded.Length > _deltaPadding) { _deltaPadding = deltaPadded.Length; }
 
                     var traceMessageFormat = _traceMessageFormatStop;
-                    if (_lastWriteContinuationEnabled == true && lastWrite.SectionScope == codeSection && lastWrite.TraceEventType == TraceEventType.Start)
+                    if (_lastWriteContinuationEnabled == true && lastWrite.CodeSectionScope == codeSection && lastWrite.TraceEventType == TraceEventType.Start)
                     {
                         isLastWriteContinuation = true;
                         traceMessageFormat = _traceMessageFormatInlineStop;
@@ -800,7 +800,7 @@ namespace Common
             var requestInfo = entry.RequestContext;
             var dept = requestInfo != null ? requestInfo.RequestDept : 0;
 
-            var section = entry.SectionScope;
+            var section = entry.CodeSectionScope;
             var showNestedFlow = _showNestedFlow;
             string deptString = $"{dept}.{(section != null ? section.NestingLevel : 0)}".PadLeftExact(4, ' ');
             // if (showNestedFlow == false) { return deptString; }
@@ -929,7 +929,7 @@ namespace Common
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static TraceEntrySurrogate GetTraceSurrogate(TraceEntry entry)
         {
-            var codeSection = entry.SectionScope;
+            var codeSection = entry.CodeSectionScope;
             return new TraceEntrySurrogate()
             {
                 TraceEventType = entry.TraceEventType,
@@ -945,7 +945,7 @@ namespace Common
                 ThreadID = entry.ThreadID,
                 ApartmentState = entry.ApartmentState,
                 DisableCRLFReplace = entry.DisableCRLFReplace,
-                CodeSection = codeSection != null ? new SectionScopeSurrogate()
+                CodeSection = codeSection != null ? new CodeSectionSurrogate()
                 {
                     NestingLevel = codeSection.NestingLevel,
                     OperationDept = codeSection.OperationDept,

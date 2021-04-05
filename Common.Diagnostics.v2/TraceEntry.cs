@@ -39,7 +39,7 @@ namespace Common
         [JsonIgnore]
         public TraceSource TraceSource { get; set; }
         [JsonIgnore]
-        public SectionScope SectionScope { get; set; }
+        public CodeSectionScope SectionScope { get; set; }
         [JsonIgnore]
         public RequestContext RequestContext { get; set; }
         [JsonIgnore]

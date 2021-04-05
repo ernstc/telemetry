@@ -449,7 +449,6 @@ namespace Common
         public string OperationID { get; set; }
         public bool IsInnerScope { get; set; }
     }
-
     public class CodeSectionInfo
     {
         public object Payload { get; set; }

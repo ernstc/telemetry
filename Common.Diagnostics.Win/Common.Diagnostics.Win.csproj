@@ -10,7 +10,7 @@
 		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 		<PackageProjectUrl>https://github.com/diginsight/telemetry</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/diginsight/telemetry.git</RepositoryUrl>
-		<PackageIcon>EkipConnect.png</PackageIcon>
+		<PackageIcon>TelemetryBig.png</PackageIcon>
 		<Authors>diginsight</Authors>
 		<Description>provides System.Diagnostics listeners that send Common.Diagnostics telemetry to the Windows Event Log and to WPF text controls</Description>
 		<SignAssembly>true</SignAssembly>
@@ -25,7 +25,7 @@
 		<Compile Remove="Helpers\**" />
 		<EmbeddedResource Remove="Helpers\**" />
 		<None Remove="Helpers\**" />
-		<None Include="..\images\01. Project image\EkipConnect\EkipConnect.png">
+		<None Include="..\images\01. Project image\Telemetry\TelemetryBig.png">
 			<Pack>True</Pack>
 			<PackagePath></PackagePath>
 		</None>
