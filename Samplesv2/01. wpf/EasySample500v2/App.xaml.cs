@@ -27,36 +27,44 @@ namespace EasySample
     public partial class App : Application
     {
         static Type T = typeof(App);
-        public IHost Host;
+        const string CONFIGVALUE_APPINSIGHTSKEY = "AppInsightsKey", DEFAULTVALUE_APPINSIGHTSKEY = "";
+
+        public static IHost Host;
         private ILogger<App> _logger;
 
         static App()
         {
-            //TraceManager.Init(null);
-            //using (var sec = TraceManager.GetCodeSection(T))
-            //{
-            try
+            using (var scope = Host.BeginMethodScope(T))
             {
-                // sec.Debug("this is a debug trace");
-                // sec.Information("this is a Information trace");
-                // sec.Warning("this is a Warning trace");
-                // sec.Error("this is a error trace");
+                try
+                {
+                    // sec.Debug("this is a debug trace");
+                    // sec.Information("this is a Information trace");
+                    // sec.Warning("this is a Warning trace");
+                    // sec.Error("this is a error trace");
 
-                throw new InvalidOperationException("this is an exception");
+                    throw new InvalidOperationException("this is an exception");
+                }
+                catch (Exception ex)
+                {
+                    //sec.Exception(ex);
+                }
             }
-            catch (Exception ex)
-            {
-                //sec.Exception(ex);
-            }
-            //}
         }
 
         public App()
         {
+            using (var scope = Host.BeginMethodScope(T))
+            {
+            }
         }
         protected override async void OnStartup(StartupEventArgs e)
         {
             var configuration = TraceLogger.GetConfiguration();
+            ConfigurationHelper.Init(configuration);
+
+            var appInsightKey = ConfigurationHelper.GetClassSetting<App, string>(CONFIGVALUE_APPINSIGHTSKEY, DEFAULTVALUE_APPINSIGHTSKEY); // , CultureInfo.InvariantCulture
+
             Host = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
                     .ConfigureAppConfiguration(builder =>
                     {
@@ -75,18 +83,13 @@ namespace EasySample
                         var log4NetProvider = new Log4NetProvider(options);
                         loggingBuilder.AddDiginsightFormatted(log4NetProvider, configuration);
 
-                        //loggingBuilder.AddApplicationInsights("6600ae1e-1466-4ad4-aea7-c017a8ab5dce");
-                        //loggingBuilder.Services.Configure(delegate (TelemetryConfiguration telemetryConfiguration) { telemetryConfiguration.InstrumentationKey = "6600ae1e-1466-4ad4-aea7-c017a8ab5dce"; });
-                        //loggingBuilder.Services.Configure(delegate (ApplicationInsightsLoggerOptions appinsightOptions) { });
-
-                        TelemetryConfiguration telemetryConfiguration = new TelemetryConfiguration("6600ae1e-1466-4ad4-aea7-c017a8ab5dce");
+                        TelemetryConfiguration telemetryConfiguration = new TelemetryConfiguration(appInsightKey);
                         ApplicationInsightsLoggerOptions appinsightOptions = new ApplicationInsightsLoggerOptions();
                         var tco = Options.Create<TelemetryConfiguration>(telemetryConfiguration);
                         var aio = Options.Create<ApplicationInsightsLoggerOptions>(appinsightOptions);
                         loggingBuilder.AddDiginsightJson(new ApplicationInsightsLoggerProvider(tco, aio), configuration);
 
                         loggingBuilder.AddFilter<ApplicationInsightsLoggerProvider>("", LogLevel.Trace);
-
                     }).Build();
 
             Host.InitTraceLogger();

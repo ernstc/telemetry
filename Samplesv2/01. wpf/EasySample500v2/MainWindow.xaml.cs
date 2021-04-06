@@ -34,27 +34,31 @@ namespace EasySample
 
         static MainWindow()
         {
-            var host = (App.Current as App).Host;
+            var host = App.Host;
             var logger = host.GetLogger<MainWindow>();
             using (var scope = logger.BeginMethodScope())
             {
             }
         }
-        public MainWindow(ILogger<MainWindow> logger) 
+        public MainWindow(ILogger<MainWindow> logger)
         {
             _logger = logger;
+            // using (_logger.BeginMethodScope())
             using (_logger.BeginScope(TraceLogger.GetMethodName()))
             {
                 InitializeComponent();
             }
         }
-        private void MainWindow_Initialized(object sender, EventArgs e)
+        private async void MainWindow_Initialized(object sender, EventArgs e)
         {
             using (var scope = _logger.BeginMethodScope())
             {
                 sampleMethod();
+
+                await sampleMethod1Async();
+
                 _logger.LogDebug("this is a debug trace", "User"); // , properties: new Dictionary<string, object>() { { "", "" } }
-                _logger.Information("this is a debug trace", "User"); // , properties: new Dictionary<string, object>() { { "", "" } }
+                _logger.LogInformation("this is a debug trace", "User"); // , properties: new Dictionary<string, object>() { { "", "" } }
                 _logger.LogInformation("this is a Information trace", "Raw");
                 _logger.LogWarning("this is a Warning trace", "User.Report");
                 _logger.LogError("this is a error trace", "Resource");
@@ -99,9 +103,8 @@ namespace EasySample
                 }
                 catch (Exception ex)
                 {
-                    //sec.Exception(ex);
+                    sec.LogException(ex);
                 }
-
 
                 // report button 
                 // var recorder = Trace.Listeners.OfType<TraceListener>().FirstOrDefault(l => l is RecorderTraceListener) as RecorderTraceListener;
@@ -126,6 +129,17 @@ namespace EasySample
         public void SampleMethodNested1()
         {
             Thread.Sleep(10);
+        }
+        async Task<bool> sampleMethod1Async()
+        {
+            using (var scope = _logger.BeginMethodScope())
+            {
+                var res = true;
+
+                await Task.Delay(0); scope.LogDebug($"await Task.Delay(0);");
+
+                return res;
+            }
         }
     }
 }

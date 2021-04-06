@@ -41,7 +41,7 @@ namespace Common
         [JsonIgnore]
         public CodeSection CodeSection { get; set; }
         [JsonIgnore]
-        public CodeSectionScope CodeSectionScope { get; set; }
+        public ICodeSection CodeSectionBase { get; set; }
         [JsonIgnore]
         public RequestContext RequestContext { get; set; }
         [JsonIgnore]

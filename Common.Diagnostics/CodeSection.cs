@@ -18,48 +18,8 @@ using System.Text.Json.Serialization;
 
 namespace Common
 {
-    public class CodeSection : IDisposable
+    public class CodeSection : CodeSectionBase, IDisposable, ICloneable, ICodeSectionLogger
     {
-        #region internal state
-        static Stopwatch _stopwatch = TraceManager.Stopwatch;
-        public bool _isLogEnabled = true;
-        public bool? _showNestedFlow = null;
-        public int? _maxMessageLevel = null;
-        public int? _maxMessageLen = null;
-        public int? _maxMessageLenError = null;
-        public int? _maxMessageLenWarning = null;
-        public int? _maxMessageLenInfo = null;
-        public int? _maxMessageLenVerbose = null;
-        public int? _maxMessageLenDebug = null;
-        public CodeSection _caller = null;
-
-        public int NestingLevel { get; set; }
-        public int OperationDept { get; set; }
-        public object Payload { get; set; }
-        //public object Exception { get; set; }
-        public object Result { get; set; }
-        public string Name { get; set; }
-        public string MemberName { get; set; }
-        public string SourceFilePath { get; set; }
-        public int SourceLineNumber { get; set; }
-        public bool DisableStartEndTraces { get; set; }
-        public Type T { get; set; }
-        public Assembly Assembly { get; set; }
-        public TraceSource TraceSource;
-        public TraceEventType TraceEventType;
-        public IModuleContext ModuleContext { get; set; }
-        public SourceLevels SourceLevel { get; set; }
-        public IDictionary<string, object> Properties { get; set; }
-        public string Source { get; set; }
-        public string Category { get; set; }
-        public long CallStartMilliseconds { get; set; }
-        public long CallStartTicks { get; set; }
-        public DateTime SystemStartTime { get; set; }
-        public string OperationID { get; set; }
-        public bool IsInnerScope { get; set; }
-        public CodeSection InnerScopeSection { get; set; }
-        #endregion
-
         #region .ctor
         static CodeSection() { }
         public CodeSection(CodeSection pCopy)
@@ -78,7 +38,7 @@ namespace Common
             this.Source = pCopy.Source;
             this.CallStartMilliseconds = pCopy.CallStartMilliseconds;
 
-            _caller = TraceManager.CurrentCodeSection.Value;
+            Caller = CodeSectionBase.Current.Value;
 
             this.NestingLevel = pCopy.NestingLevel;
             this.OperationID = pCopy.OperationID;
@@ -112,17 +72,17 @@ namespace Common
             this.CallStartMilliseconds = _stopwatch.ElapsedMilliseconds;
             this.CallStartTicks = startTicks;
 
-            var caller = TraceManager.CurrentCodeSection.Value;
-            while (caller != null && caller._disposed) { caller = caller._caller; }
-            _caller = caller;
+            var caller = CodeSectionBase.Current.Value;
+            while (caller != null && caller.IsDisposed) { caller = caller.Caller; }
+            Caller = caller;
 
-            if (disableStartEndTraces == false) { TraceManager.CurrentCodeSection.Value = this; }
+            if (disableStartEndTraces == false) { CodeSectionBase.Current.Value = this; }
 
-            if (_caller != null)
+            if (Caller != null)
             {
-                if (disableStartEndTraces == false) { NestingLevel = _caller.NestingLevel + 1; }
-                OperationID = _caller.OperationID;
-                OperationDept = _caller.OperationDept;
+                if (disableStartEndTraces == false) { NestingLevel = Caller.NestingLevel + 1; }
+                OperationID = Caller.OperationID;
+                OperationDept = Caller.OperationDept;
                 if (string.IsNullOrEmpty(OperationID)) { (this.OperationID, this.OperationDept) = getOperationInfo(); }
             }
             else
@@ -363,12 +323,12 @@ namespace Common
             }
         }
 
-        bool _disposed = false;
-        public void Dispose()
+        public override void Dispose()
         {
-            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
-            if (_disposed) { return; }
-            _disposed = true;
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+            if (IsDisposed) { return; }
+
+            base.Dispose();
 
             try
             {
@@ -387,15 +347,15 @@ namespace Common
                 }
 
             }
-            finally { TraceManager.CurrentCodeSection.Value = _caller; }
+            finally { CodeSectionBase.Current.Value = Caller; }
         }
 
-        public CodeSection GetInnerCodeSection()
-        {
-            if (InnerScopeSection == null) { InnerScopeSection = this.Clone(); InnerScopeSection.IsInnerScope = true; }
-            return InnerScopeSection;
-        }
-        public CodeSection Clone() { return new CodeSection(this); }
+        //public CodeSection GetInnerCodeSection()
+        //{
+        //    if (InnerScopeSection == null) { InnerScopeSection = this.Clone(); InnerScopeSection.IsInnerScope = true; }
+        //    return InnerScopeSection;
+        //}
+        public override object Clone() { return new CodeSection(this); }
 
         #region getOperationInfo
         public static (string, int) getOperationInfo()
@@ -403,7 +363,7 @@ namespace Common
             string operationID = null;
             try
             {
-                var operationContext = TraceManager.OperationContext.Value;
+                var operationContext = CodeSectionBase.OperationContext.Value;
                 //var operationContext = CallContext.LogicalGetData("OperationContext") as IOperationContext;
                 if (operationContext != null && !string.IsNullOrEmpty(operationContext.RequestContext?.RequestId))
                 {
