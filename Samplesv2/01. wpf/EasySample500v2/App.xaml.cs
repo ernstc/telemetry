@@ -83,8 +83,8 @@ namespace EasySample
                         var log4NetProvider = new Log4NetProvider(options);
                         loggingBuilder.AddDiginsightFormatted(log4NetProvider, configuration);
 
-                        TelemetryConfiguration telemetryConfiguration = new TelemetryConfiguration(appInsightKey);
-                        ApplicationInsightsLoggerOptions appinsightOptions = new ApplicationInsightsLoggerOptions();
+                        var telemetryConfiguration = new TelemetryConfiguration(appInsightKey);
+                        var appinsightOptions = new ApplicationInsightsLoggerOptions();
                         var tco = Options.Create<TelemetryConfiguration>(telemetryConfiguration);
                         var aio = Options.Create<ApplicationInsightsLoggerOptions>(appinsightOptions);
                         loggingBuilder.AddDiginsightJson(new ApplicationInsightsLoggerProvider(tco, aio), configuration);
@@ -98,13 +98,14 @@ namespace EasySample
             using (var scope = logger.BeginMethodScope())
             {
                 // LogStringExtensions.RegisterLogstringProvider(this);
+
+                await Host.StartAsync(); scope.LogDebug($"await Host.StartAsync();");
+
+                var mainWindow = Host.Services.GetRequiredService<MainWindow>(); scope.LogDebug($"Host.Services.GetRequiredService<MainWindow>(); returns {mainWindow.GetLogString()}");
+                mainWindow.Show(); scope.LogDebug($"mainWindow.Show();");
+
+                base.OnStartup(e); scope.LogDebug($"base.OnStartup(e);");
             }
-            await Host.StartAsync();
-
-            var mainWindow = Host.Services.GetRequiredService<MainWindow>();
-            mainWindow.Show();
-
-            base.OnStartup(e);
         }
         private void ConfigureServices(IConfiguration configuration, IServiceCollection services)
         {

@@ -417,7 +417,17 @@ namespace Common
 
             var tidpid = string.Format("{0,5} {1,4} {2}", TraceManager.ProcessId, entry.ThreadID, entry.ApartmentState);
             var maxMessageLen = TraceManager.GetMaxMessageLen(codeSection, entry.TraceEventType);
-            var message = codeSection.IsInnerScope ? "... " + entry.Message : entry.Message;
+
+            var messageRaw = entry.Message;
+            if (entry.GetMessage != null)
+            {
+                messageRaw = entry.GetMessage();
+            }
+            else if (entry.MessageFormat != null)
+            {
+                messageRaw = string.Format(entry.MessageFormat, entry.MessageArgs);
+            }
+            var message = codeSection.IsInnerScope ? "... " + messageRaw : messageRaw;
             if (maxMessageLen > 0 && message != null && message.Length > maxMessageLen) { message = message.Substring(0, maxMessageLen.Value - 3) + "..."; }
 
             var nesting = getNesting(entry);

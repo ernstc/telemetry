@@ -181,6 +181,27 @@ namespace Common
             }
             catch (Exception) { }
         }
+        public void Debug(Func<string> getMessage, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
+        {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
+            if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Verbose)) { return; }
+
+            try
+            {
+                var entry = new TraceEntry() { GetMessage = getMessage, TraceEventType = TraceEventType.Verbose, SourceLevel = SourceLevels.Verbose, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
+                if (!TraceManager._lockListenersNotifications.Value)
+                {
+                    if (TraceSource?.Listeners != null && TraceSource.Listeners.Count > 0) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                    if (Trace.Listeners != null && Trace.Listeners.Count > 0) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                }
+                else
+                {
+                    TraceManager._pendingEntries.Enqueue(entry);
+                    if (TraceManager._isInitializeComplete.Value == false && TraceManager._isInitializing.Value == false) { TraceManager.Init(SourceLevels.All, null); }
+                }
+            }
+            catch (Exception) { }
+        }
 
         public void Information(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
@@ -205,6 +226,23 @@ namespace Common
             if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Information)) { return; }
 
             var entry = new TraceEntry() { Message = string.Format(message.Format, message.GetArguments()), TraceEventType = TraceEventType.Information, SourceLevel = SourceLevels.Information, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
+            if (!TraceManager._lockListenersNotifications.Value)
+            {
+                if (TraceSource?.Listeners != null && TraceSource.Listeners.Count > 0) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                if (Trace.Listeners != null && Trace.Listeners.Count > 0) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            }
+            else
+            {
+                TraceManager._pendingEntries.Enqueue(entry);
+                if (TraceManager._isInitializeComplete.Value == false && TraceManager._isInitializing.Value == false) { TraceManager.Init(SourceLevels.All, null); }
+            }
+        }
+        public void Information(Func<string> getMessage, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
+        {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
+            if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Information)) { return; }
+
+            var entry = new TraceEntry() { GetMessage = getMessage, TraceEventType = TraceEventType.Information, SourceLevel = SourceLevels.Information, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
             if (!TraceManager._lockListenersNotifications.Value)
             {
                 if (TraceSource?.Listeners != null && TraceSource.Listeners.Count > 0) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
@@ -252,6 +290,23 @@ namespace Common
                 if (TraceManager._isInitializeComplete.Value == false && TraceManager._isInitializing.Value == false) { TraceManager.Init(SourceLevels.All, null); }
             }
         }
+        public void Warning(Func<string> getMessage, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
+        {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
+            if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Warning)) { return; }
+
+            var entry = new TraceEntry() { GetMessage = getMessage, TraceEventType = TraceEventType.Warning, SourceLevel = SourceLevels.Warning, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
+            if (!TraceManager._lockListenersNotifications.Value)
+            {
+                if (TraceSource?.Listeners != null && TraceSource.Listeners.Count > 0) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                if (Trace.Listeners != null && Trace.Listeners.Count > 0) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            }
+            else
+            {
+                TraceManager._pendingEntries.Enqueue(entry);
+                if (TraceManager._isInitializeComplete.Value == false && TraceManager._isInitializing.Value == false) { TraceManager.Init(SourceLevels.All, null); }
+            }
+        }
 
         public void Error(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
@@ -276,6 +331,23 @@ namespace Common
             if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Error)) { return; }
 
             var entry = new TraceEntry() { Message = string.Format(message.Format, message.GetArguments()), TraceEventType = TraceEventType.Error, SourceLevel = SourceLevels.Error, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
+            if (!TraceManager._lockListenersNotifications.Value)
+            {
+                if (TraceSource?.Listeners != null && TraceSource.Listeners.Count > 0) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+                if (Trace.Listeners != null && Trace.Listeners.Count > 0) { foreach (TraceListener listener in Trace.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
+            }
+            else
+            {
+                TraceManager._pendingEntries.Enqueue(entry);
+                if (TraceManager._isInitializeComplete.Value == false && TraceManager._isInitializing.Value == false) { TraceManager.Init(SourceLevels.All, null); }
+            }
+        }
+        public void Error(Func<string> getMessage, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
+        {
+            var startTicks = TraceManager.Stopwatch.ElapsedTicks;
+            if (TraceSource?.Switch != null && !TraceSource.Switch.ShouldTrace(TraceEventType.Error)) { return; }
+
+            var entry = new TraceEntry() { GetMessage = getMessage, TraceEventType = TraceEventType.Error, SourceLevel = SourceLevels.Error, TraceSource = this.TraceSource, Properties = properties, Source = source ?? this.Source, Category = category, CodeSection = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceManager.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
             if (!TraceManager._lockListenersNotifications.Value)
             {
                 if (TraceSource?.Listeners != null && TraceSource.Listeners.Count > 0) { foreach (TraceListener listener in TraceSource.Listeners) { try { listener.WriteLine(entry); } catch (Exception) { } } }
@@ -350,11 +422,6 @@ namespace Common
             finally { CodeSectionBase.Current.Value = Caller; }
         }
 
-        //public CodeSection GetInnerCodeSection()
-        //{
-        //    if (InnerScopeSection == null) { InnerScopeSection = this.Clone(); InnerScopeSection.IsInnerScope = true; }
-        //    return InnerScopeSection;
-        //}
         public override object Clone() { return new CodeSection(this); }
 
         #region getOperationInfo
@@ -377,230 +444,5 @@ namespace Common
         #region Min
         int Min(int a, int b) { return a < b ? a : b; }
         #endregion
-    }
-    public class CodeSectionSurrogate
-    {
-        public int NestingLevel { get; set; }
-        public int OperationDept { get; set; }
-        public object Payload { get; set; }
-        //public object Exception { get; set; }
-        public object Result { get; set; }
-        public string Name { get; set; }
-        public string MemberName { get; set; }
-        public string SourceFilePath { get; set; }
-        public int SourceLineNumber { get; set; }
-        public bool DisableStartEndTraces { get; set; }
-        //public Type T { get; set; }
-        public string TypeName { get; set; }
-        public string TypeFullName { get; set; }
-        //public Assembly Assembly { get; set; }
-        public string AssemblyName { get; set; }
-        public string AssemblyFullName { get; set; }
-        //public TraceSource TraceSource;
-        public string TraceSourceName;
-        public TraceEventType TraceEventType;
-        // public IModuleContext ModuleContext { get; set; }
-        public SourceLevels SourceLevel { get; set; }
-        public IDictionary<string, object> Properties { get; set; }
-        public string Source { get; set; }
-        public string Category { get; set; }
-        public long CallStartMilliseconds { get; set; }
-        public DateTime SystemStartTime { get; set; }
-        public string OperationID { get; set; }
-        public bool IsInnerScope { get; set; }
-    }
-    public class CodeSectionInfo
-    {
-        public object Payload { get; set; }
-        public string Name { get; set; }
-        public string MemberName { get; set; }
-        public string SourceFilePath { get; set; }
-        public int SourceLineNumber { get; set; }
-        public long CallStartMilliseconds { get; set; }
-        public DateTimeOffset? CallStart { get; set; }
-        public DateTimeOffset? CallEnd { get; set; }
-        public int NestingLevel { get; set; }
-        public Type T { get; set; }
-    }
-    public class ProcessInfo
-    {
-        public string ProcessID { get; set; }
-        public string ProcessName { get; set; }
-        public Assembly Assembly { get; set; }
-        public Process Process { get; set; }
-        public Thread Thread { get; set; }
-        public int ThreadID { get; set; }
-    }
-    public class SystemInfo
-    {
-        public string Server { get; set; }
-    }
-    public interface IRequestContext
-    {
-        string Method { get; set; }
-        string Path { get; set; }
-        string QueryString { get; set; }
-        string ContentType { get; set; }
-        long? ContentLength { get; set; }
-        string Protocol { get; set; }
-        string PathBase { get; set; }
-        string Host { get; set; }
-        bool IsHttps { get; set; }
-        string Scheme { get; set; }
-        bool HasFormContentType { get; set; }
-        IList<KeyValuePair<string, string>> Headers { get; set; }
-        string TypeName { get; set; }
-        string AssemblyName { get; set; }
-        string Layer { get; set; }
-        string Area { get; set; }
-        string Controller { get; set; }
-        string Action { get; set; }
-        string RequestId { get; set; }
-        int RequestDept { get; set; }
-        string ServiceName { get; set; }
-        string OperationName { get; set; }
-        string RequestDescription { get; set; }
-        DateTimeOffset RequestStart { get; set; }
-        DateTimeOffset? RequestEnd { get; set; }
-        object Input { get; set; }
-        object Output { get; set; }
-        string ProfileServiceURL { get; set; }
-    }
-    public interface IBusinessContext
-    {
-        string Branch { get; set; }
-    }
-    public interface IUserContext
-    {
-        bool? IsAuthenticated { get; set; }
-        string AuthenticationType { get; set; }
-        string ImpersonationLevel { get; set; }
-        bool? IsAnonymous { get; set; }
-        bool? IsGuest { get; set; }
-        bool? IsSystem { get; set; }
-        IIdentity Identity { get; set; }
-    }
-    public interface ISessionContext
-    {
-        string SessionId { get; set; }
-        bool? SessionIsAvailable { get; set; }
-    }
-    public interface ISystemContext
-    {
-        string ConnectionId { get; set; }
-        string ConnectionLocalIpAddress { get; set; }
-        int? ConnectionLocalPort { get; set; }
-        string ConnectionRemoteIpAddress { get; set; }
-        int? ConnectionRemotePort { get; set; }
-        string Server { get; set; }
-    }
-    public interface IOperationContext
-    {
-        //// REQUEST
-        IRequestContext RequestContext { get; set; }
-        // USER
-        IUserContext UserContext { get; set; }
-        // SESSION
-        ISessionContext SessionContext { get; set; }
-        // SYSTEM
-        ISystemContext SystemContext { get; set; }
-        // BUSINESS
-        IBusinessContext BusinessContext { get; set; }
-    }
-    public interface IModuleContext
-    {
-        //bool? ShowNestedFlow { get; set; }
-        int? MaxMessageLevel { get; set; }
-        int? MaxMessageLen { get; set; }
-        int? MaxMessageLenError { get; set; }
-        int? MaxMessageLenWarning { get; set; }
-        int? MaxMessageLenInfo { get; set; }
-        int? MaxMessageLenVerbose { get; set; }
-        int? MaxMessageLenDebug { get; set; }
-        //DateTimeOffset? LogggingSettingsCreationDate { get; set; }
-
-        Assembly Assembly { get; set; }
-        ConcurrentDictionary<string, object> Properties { get; set; }
-    }
-    public class RequestContext : IRequestContext
-    {
-        public string Method { get; set; }
-        public string Path { get; set; }
-        public string QueryString { get; set; }
-        public string ContentType { get; set; }
-        public long? ContentLength { get; set; }
-        public string Protocol { get; set; }
-        public string PathBase { get; set; }
-        public string Host { get; set; }
-        public bool IsHttps { get; set; }
-        public string Scheme { get; set; }
-        public bool HasFormContentType { get; set; }
-        public IList<KeyValuePair<string, string>> Headers { get; set; }
-        public string TypeName { get; set; }
-        public string AssemblyName { get; set; }
-        public string Layer { get; set; }
-        public string Area { get; set; }
-        public string Controller { get; set; }
-        public string Action { get; set; }
-        public string RequestId { get; set; }
-        public int RequestDept { get; set; }
-        public string ServiceName { get; set; }
-        public string OperationName { get; set; }
-        public string RequestDescription { get; set; }
-        public DateTimeOffset RequestStart { get; set; }
-        public DateTimeOffset? RequestEnd { get; set; }
-        public object Input { get; set; }
-        public object Output { get; set; }
-        public string ProfileServiceURL { get; set; }
-    }
-    public class BusinessContext : IBusinessContext
-    {
-        public string Branch { get; set; }
-    }
-    public class ModuleContext : IModuleContext
-    {
-        #region .ctor
-        public ModuleContext(Assembly assembly)
-        {
-            this.Assembly = assembly;
-        }
-        #endregion
-
-        public bool? ShowNestedFlow { get; set; }
-        public int? MaxMessageLevel { get; set; }
-        public int? MaxMessageLen { get; set; }
-        public int? MaxMessageLenError { get; set; }
-        public int? MaxMessageLenWarning { get; set; }
-        public int? MaxMessageLenInfo { get; set; }
-        public int? MaxMessageLenVerbose { get; set; }
-        public int? MaxMessageLenDebug { get; set; }
-        public DateTimeOffset? LogggingSettingsCreationDate { get; set; }
-        public Assembly Assembly { get; set; }
-        public ConcurrentDictionary<string, object> Properties { get; set; } = new ConcurrentDictionary<string, object>();
-        public void SetProperty(string name, object val)
-        {
-            this.Properties[name] = val;
-            // map explicit properties
-            //var cd = val as ChiaveDescrizione;
-            //switch (name)
-            //{
-            //    case "Configuration.LoggingSettings:MaxMessageLevel":
-            //        this.MaxMessageLevel = !string.IsNullOrEmpty(cd?.Valore) ? (int?)ConfigurationManagerCommon.GetValue(cd.Valore, Trace.CONFIGDEFAULT_MAXMESSAGELEVEL, null) : null;
-            //        break;
-            //};
-        }
-    }
-    public sealed class NonFormattableString
-    {
-        public NonFormattableString(string arg)
-        {
-            Value = arg;
-        }
-
-        public string Value { get; }
-
-        public static implicit operator NonFormattableString(string arg) { return new NonFormattableString(arg); }
-
-        public static implicit operator NonFormattableString(FormattableString arg) { throw new InvalidOperationException(); }
     }
 }

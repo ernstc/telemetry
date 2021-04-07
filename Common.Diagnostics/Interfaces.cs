@@ -1,9 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -75,20 +77,24 @@ namespace Common
 
         ICodeSection GetInnerSection();
     }
-
     public interface ICodeSectionLogger
     {
         void Debug(object obj, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false);
         void Debug(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false);
         void Debug(FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false);
+        void Debug(Func<string> getMessage, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false);
+
         void Information(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false);
         void Information(FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false);
+        void Information(Func<string> getMessage, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false);
 
         void Warning(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false);
         void Warning(FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false);
+        void Warning(Func<string> getMessage, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false);
 
         void Error(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false);
         void Error(FormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false);
+        void Error(Func<string> getMessage, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false);
 
         void Exception(Exception exception, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = true);
     }
@@ -106,4 +112,92 @@ namespace Common
     {
         string FormatTraceEntry(TraceEntry entry, Exception ex);
     }
+    public interface IRequestContext
+    {
+        string Method { get; set; }
+        string Path { get; set; }
+        string QueryString { get; set; }
+        string ContentType { get; set; }
+        long? ContentLength { get; set; }
+        string Protocol { get; set; }
+        string PathBase { get; set; }
+        string Host { get; set; }
+        bool IsHttps { get; set; }
+        string Scheme { get; set; }
+        bool HasFormContentType { get; set; }
+        IList<KeyValuePair<string, string>> Headers { get; set; }
+        string TypeName { get; set; }
+        string AssemblyName { get; set; }
+        string Layer { get; set; }
+        string Area { get; set; }
+        string Controller { get; set; }
+        string Action { get; set; }
+        string RequestId { get; set; }
+        int RequestDept { get; set; }
+        string ServiceName { get; set; }
+        string OperationName { get; set; }
+        string RequestDescription { get; set; }
+        DateTimeOffset RequestStart { get; set; }
+        DateTimeOffset? RequestEnd { get; set; }
+        object Input { get; set; }
+        object Output { get; set; }
+        string ProfileServiceURL { get; set; }
+    }
+    public interface IBusinessContext
+    {
+        string Branch { get; set; }
+    }
+    public interface IUserContext
+    {
+        bool? IsAuthenticated { get; set; }
+        string AuthenticationType { get; set; }
+        string ImpersonationLevel { get; set; }
+        bool? IsAnonymous { get; set; }
+        bool? IsGuest { get; set; }
+        bool? IsSystem { get; set; }
+        IIdentity Identity { get; set; }
+    }
+    public interface ISessionContext
+    {
+        string SessionId { get; set; }
+        bool? SessionIsAvailable { get; set; }
+    }
+    public interface ISystemContext
+    {
+        string ConnectionId { get; set; }
+        string ConnectionLocalIpAddress { get; set; }
+        int? ConnectionLocalPort { get; set; }
+        string ConnectionRemoteIpAddress { get; set; }
+        int? ConnectionRemotePort { get; set; }
+        string Server { get; set; }
+    }
+    public interface IOperationContext
+    {
+        //// REQUEST
+        IRequestContext RequestContext { get; set; }
+        // USER
+        IUserContext UserContext { get; set; }
+        // SESSION
+        ISessionContext SessionContext { get; set; }
+        // SYSTEM
+        ISystemContext SystemContext { get; set; }
+        // BUSINESS
+        IBusinessContext BusinessContext { get; set; }
+    }
+    public interface IModuleContext
+    {
+        //bool? ShowNestedFlow { get; set; }
+        int? MaxMessageLevel { get; set; }
+        int? MaxMessageLen { get; set; }
+        int? MaxMessageLenError { get; set; }
+        int? MaxMessageLenWarning { get; set; }
+        int? MaxMessageLenInfo { get; set; }
+        int? MaxMessageLenVerbose { get; set; }
+        int? MaxMessageLenDebug { get; set; }
+        //DateTimeOffset? LogggingSettingsCreationDate { get; set; }
+
+        Assembly Assembly { get; set; }
+        ConcurrentDictionary<string, object> Properties { get; set; }
+    }
+
 }

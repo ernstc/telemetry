@@ -20,13 +20,20 @@ namespace Common
 {
     public struct TraceEntry
     {
-        public TraceEventType TraceEventType { get; set; }
         public string Message { get; set; }
+        [JsonIgnore]
+        public string MessageFormat { get; set; }
+        [JsonIgnore]
+        public object[] MessageArgs { get; set; }
+        [JsonIgnore]
         public Func<string> GetMessage { get; set; }
         public IDictionary<string, object> Properties { get; set; }
         public string Source { get; set; }
         public string Category { get; set; }
+
+        public TraceEventType TraceEventType { get; set; }
         public SourceLevels SourceLevel { get; set; }
+
         public long ElapsedMilliseconds { get; set; }
         public DateTimeOffset Timestamp { get; set; }
         public long TraceStartTicks { get; set; }
@@ -34,6 +41,7 @@ namespace Common
         public int ThreadID { get; set; }
         public ApartmentState ApartmentState { get; set; }
         public bool DisableCRLFReplace { get; set; }
+
         [JsonIgnore]
         public TraceSource TraceSource { get; set; }
         [JsonIgnore]

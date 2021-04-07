@@ -36,6 +36,7 @@ namespace Common
             this.SourceFilePath = pCopy.SourceFilePath;
             this.SourceLineNumber = pCopy.SourceLineNumber;
             this.DisableStartEndTraces = true;
+            _logger = pCopy._logger;
             this.T = pCopy.T;
             this.Assembly = pCopy.Assembly;
             this.Category = pCopy.Category;
@@ -186,7 +187,6 @@ namespace Common
         }
         #endregion
 
-        // () => { } - $"ffdf {variable}"  $"ffdf {0}", variable1
         public void LogDebug(object obj, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
             var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
@@ -225,7 +225,41 @@ namespace Common
 
             try
             {
-                var entry = new TraceEntry() { Message = string.Format(message.Format, message.GetArguments()), TraceEventType = TraceEventType.Verbose, SourceLevel = SourceLevels.Verbose, Properties = properties, Source = source ?? this.Source, Category = category, CodeSectionBase = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceLogger.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
+                var entry = new TraceEntry()
+                {
+                    Message = string.Format(message.Format, message.GetArguments()),
+                    TraceEventType = TraceEventType.Verbose,
+                    SourceLevel = SourceLevels.Verbose,
+                    Properties = properties,
+                    Source = source ?? this.Source,
+                    Category = category,
+                    CodeSectionBase = this,
+                    Thread = Thread.CurrentThread,
+                    ThreadID = Thread.CurrentThread.ManagedThreadId,
+                    ApartmentState = Thread.CurrentThread.GetApartmentState(),
+                    DisableCRLFReplace = disableCRLFReplace,
+                    ElapsedMilliseconds = TraceLogger.Stopwatch.ElapsedMilliseconds,
+                    TraceStartTicks = startTicks
+                };
+                if (!TraceLogger._lockListenersNotifications.Value && _logger != null)
+                {
+                    _logger.Log<TraceEntry>(LogLevel.Debug, default(EventId), entry, null, (e, ex) => e.ToString());
+                }
+                else
+                {
+                    TraceLogger._pendingEntries.Enqueue(entry);
+                    if (TraceLogger._isInitializeComplete.Value == false && TraceLogger._isInitializing.Value == false) { TraceLogger.Init(null); }
+                }
+            }
+            catch (Exception) { }
+        }
+        public void LogDebug(Func<string> getMessage, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
+        {
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+
+            try
+            {
+                var entry = new TraceEntry() { GetMessage = getMessage, TraceEventType = TraceEventType.Verbose, SourceLevel = SourceLevels.Verbose, Properties = properties, Source = source ?? this.Source, Category = category, CodeSectionBase = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceLogger.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
                 if (!TraceLogger._lockListenersNotifications.Value && _logger != null)
                 {
                     _logger.Log<TraceEntry>(LogLevel.Debug, default(EventId), entry, null, (e, ex) => e.ToString());
@@ -269,6 +303,25 @@ namespace Common
                 if (TraceLogger._isInitializeComplete.Value == false && TraceLogger._isInitializing.Value == false) { TraceLogger.Init(null); }
             }
         }
+        public void LogInformation(Func<string> getMessage, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
+        {
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+
+            try
+            {
+                var entry = new TraceEntry() { GetMessage = getMessage, TraceEventType = TraceEventType.Information, SourceLevel = SourceLevels.Information, Properties = properties, Source = source ?? this.Source, Category = category, CodeSectionBase = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceLogger.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
+                if (!TraceLogger._lockListenersNotifications.Value && _logger != null)
+                {
+                    _logger.Log<TraceEntry>(LogLevel.Information, default(EventId), entry, null, (e, ex) => e.ToString());
+                }
+                else
+                {
+                    TraceLogger._pendingEntries.Enqueue(entry);
+                    if (TraceLogger._isInitializeComplete.Value == false && TraceLogger._isInitializing.Value == false) { TraceLogger.Init(null); }
+                }
+            }
+            catch (Exception) { }
+        }
 
         public void LogWarning(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
@@ -301,6 +354,25 @@ namespace Common
                 if (TraceLogger._isInitializeComplete.Value == false && TraceLogger._isInitializing.Value == false) { TraceLogger.Init(null); }
             }
         }
+        public void LogWarning(Func<string> getMessage, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
+        {
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+
+            try
+            {
+                var entry = new TraceEntry() { GetMessage = getMessage, TraceEventType = TraceEventType.Warning, SourceLevel = SourceLevels.Warning, Properties = properties, Source = source ?? this.Source, Category = category, CodeSectionBase = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceLogger.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
+                if (!TraceLogger._lockListenersNotifications.Value && _logger != null)
+                {
+                    _logger.Log<TraceEntry>(LogLevel.Warning, default(EventId), entry, null, (e, ex) => e.ToString());
+                }
+                else
+                {
+                    TraceLogger._pendingEntries.Enqueue(entry);
+                    if (TraceLogger._isInitializeComplete.Value == false && TraceLogger._isInitializing.Value == false) { TraceLogger.Init(null); }
+                }
+            }
+            catch (Exception) { }
+        }
 
         public void LogError(NonFormattableString message, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
         {
@@ -331,6 +403,25 @@ namespace Common
                 TraceLogger._pendingEntries.Enqueue(entry);
                 if (TraceLogger._isInitializeComplete.Value == false && TraceLogger._isInitializing.Value == false) { TraceLogger.Init(null); }
             }
+        }
+        public void LogError(Func<string> getMessage, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false)
+        {
+            var startTicks = TraceLogger.Stopwatch.ElapsedTicks;
+
+            try
+            {
+                var entry = new TraceEntry() { GetMessage = getMessage, TraceEventType = TraceEventType.Error, SourceLevel = SourceLevels.Error, Properties = properties, Source = source ?? this.Source, Category = category, CodeSectionBase = this, Thread = Thread.CurrentThread, ThreadID = Thread.CurrentThread.ManagedThreadId, ApartmentState = Thread.CurrentThread.GetApartmentState(), DisableCRLFReplace = disableCRLFReplace, ElapsedMilliseconds = TraceLogger.Stopwatch.ElapsedMilliseconds, TraceStartTicks = startTicks };
+                if (!TraceLogger._lockListenersNotifications.Value && _logger != null)
+                {
+                    _logger.Log<TraceEntry>(LogLevel.Error, default(EventId), entry, null, (e, ex) => e.ToString());
+                }
+                else
+                {
+                    TraceLogger._pendingEntries.Enqueue(entry);
+                    if (TraceLogger._isInitializeComplete.Value == false && TraceLogger._isInitializing.Value == false) { TraceLogger.Init(null); }
+                }
+            }
+            catch (Exception) { }
         }
 
         public void LogException(Exception exception, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = true)
@@ -420,56 +511,19 @@ namespace Common
         void ICodeSectionLogger.Debug(object obj, string category, IDictionary<string, object> properties, string source, bool disableCRLFReplace) { this.LogDebug(obj, category, properties, source, disableCRLFReplace); }
         void ICodeSectionLogger.Debug(NonFormattableString message, string category, IDictionary<string, object> properties, string source, bool disableCRLFReplace) { this.LogDebug(message, category, properties, source, disableCRLFReplace); }
         void ICodeSectionLogger.Debug(FormattableString message, string category, IDictionary<string, object> properties, string source, bool disableCRLFReplace) { this.LogDebug(message, category, properties, source, disableCRLFReplace); }
+        public void Debug(Func<string> getMessage, string category = null, IDictionary<string, object> properties = null, string source = null, bool disableCRLFReplace = false) { this.LogDebug(getMessage, category, properties, source, disableCRLFReplace); }
         void ICodeSectionLogger.Information(NonFormattableString message, string category, IDictionary<string, object> properties, string source, bool disableCRLFReplace) { this.LogInformation(message, category, properties, source, disableCRLFReplace); }
         void ICodeSectionLogger.Information(FormattableString message, string category, IDictionary<string, object> properties, string source, bool disableCRLFReplace) { this.LogInformation(message, category, properties, source, disableCRLFReplace); }
+        void ICodeSectionLogger.Information(Func<string> getMessage, string category, IDictionary<string, object> properties, string source, bool disableCRLFReplace) { this.LogInformation(getMessage, category, properties, source, disableCRLFReplace); }
+
         void ICodeSectionLogger.Warning(NonFormattableString message, string category, IDictionary<string, object> properties, string source, bool disableCRLFReplace) { this.LogWarning(message, category, properties, source, disableCRLFReplace); }
         void ICodeSectionLogger.Warning(FormattableString message, string category, IDictionary<string, object> properties, string source, bool disableCRLFReplace) { this.LogWarning(message, category, properties, source, disableCRLFReplace); }
+        void ICodeSectionLogger.Warning(Func<string> getMessage, string category, IDictionary<string, object> properties, string source, bool disableCRLFReplace) { this.LogWarning(getMessage, category, properties, source, disableCRLFReplace); }
+
         void ICodeSectionLogger.Error(NonFormattableString message, string category, IDictionary<string, object> properties, string source, bool disableCRLFReplace) { this.LogError(message, category, properties, source, disableCRLFReplace); }
         void ICodeSectionLogger.Error(FormattableString message, string category, IDictionary<string, object> properties, string source, bool disableCRLFReplace) { this.LogError(message, category, properties, source, disableCRLFReplace); }
-        void ICodeSectionLogger.Exception(Exception exception, string category, IDictionary<string, object> properties, string source, bool disableCRLFReplace)  { this.LogException(exception, category, properties, source, disableCRLFReplace); }
-    }
-    public class SectionScopeSurrogate
-    {
-        public int NestingLevel { get; set; }
-        public int OperationDept { get; set; }
-        public object Payload { get; set; }
-        //public object Exception { get; set; }
-        public object Result { get; set; }
-        public string Name { get; set; }
-        public string MemberName { get; set; }
-        public string SourceFilePath { get; set; }
-        public int SourceLineNumber { get; set; }
-        public bool DisableStartEndTraces { get; set; }
-        //public Type T { get; set; }
-        public string TypeName { get; set; }
-        public string TypeFullName { get; set; }
-        //public Assembly Assembly { get; set; }
-        public string AssemblyName { get; set; }
-        public string AssemblyFullName { get; set; }
-        //public TraceSource TraceSource;
-        public string TraceSourceName;
-        public TraceEventType TraceEventType;
-        // public IModuleContext ModuleContext { get; set; }
-        public SourceLevels SourceLevel { get; set; }
-        public IDictionary<string, object> Properties { get; set; }
-        public string Source { get; set; }
-        public string Category { get; set; }
-        public long CallStartMilliseconds { get; set; }
-        public DateTime SystemStartTime { get; set; }
-        public string OperationID { get; set; }
-        public bool IsInnerScope { get; set; }
-    }
-    public class SectionScopeInfo
-    {
-        public object Payload { get; set; }
-        public string Name { get; set; }
-        public string MemberName { get; set; }
-        public string SourceFilePath { get; set; }
-        public int SourceLineNumber { get; set; }
-        public long CallStartMilliseconds { get; set; }
-        public DateTimeOffset? CallStart { get; set; }
-        public DateTimeOffset? CallEnd { get; set; }
-        public int NestingLevel { get; set; }
-        public Type T { get; set; }
+        void ICodeSectionLogger.Error(Func<string> getMessage, string category, IDictionary<string, object> properties, string source, bool disableCRLFReplace) { this.LogError(getMessage, category, properties, source, disableCRLFReplace); }
+
+        void ICodeSectionLogger.Exception(Exception exception, string category, IDictionary<string, object> properties, string source, bool disableCRLFReplace) { this.LogException(exception, category, properties, source, disableCRLFReplace); }
     }
 }
